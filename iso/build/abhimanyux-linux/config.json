@@ -1,0 +1,7 @@
+{
+  "model_name": "auto",
+  "auto_select_model": true,
+  "enable_cvss_scoring": true,
+  "enable_exploit_tracing": true,
+  "enable_immune_memory": true
+}

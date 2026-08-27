@@ -1,0 +1,66 @@
+{
+  "deployment": "AI15-DT",
+  "hardware": {
+    "cpu": "i9-13900",
+    "cores": 24,
+    "ram_gb": 64,
+    "gpu": "RTX 4060",
+    "vram_gb": 12,
+    "storage_gb": 954
+  },
+  "recommended_models": {
+    "best_for_code_security": {
+      "model": "qwen2.5-coder-7b-instruct-q4_K_M",
+      "provider": "ollama",
+      "vram_needed_gb": 5,
+      "speed": "50+ tokens/sec",
+      "quality": "4/5"
+    },
+    "best_quality": {
+      "model": "qwen2.5-coder-32b-instruct-q4_K_M",
+      "provider": "ollama",
+      "vram_needed_gb": 20,
+      "speed": "20 tokens/sec",
+      "quality": "5/5",
+      "note": "Partially offloaded to RAM"
+    },
+    "fast_option": {
+      "model": "qwen3:8b",
+      "provider": "ollama",
+      "vram_needed_gb": 5,
+      "speed": "55+ tokens/sec",
+      "quality": "4/5"
+    },
+    "deepseek_local": {
+      "model": "deepseek-coder-v2:16b",
+      "provider": "ollama",
+      "vram_needed_gb": 10,
+      "speed": "35 tokens/sec",
+      "quality": "4.5/5"
+    }
+  },
+  "abhimanyux_config": {
+    "default_model": "qwen2.5-coder-7b",
+    "auto_select_model": true,
+    "enable_cvss_scoring": true,
+    "enable_exploit_tracing": true,
+    "enable_immune_memory": true,
+    "parallel_analysis": true,
+    "max_concurrent": 4
+  },
+  "api_keys": {
+    "anthropic": null,
+    "openai": null,
+    "gemini": null,
+    "deepseek": null
+  },
+  "ollama": {
+    "endpoint": "http://localhost:11434",
+    "auto_start": true,
+    "preferred_models": [
+      "qwen2.5-coder:7b-instruct-q4_K_M",
+      "qwen3:8b",
+      "deepseek-coder-v2:16b"
+    ]
+  }
+}
