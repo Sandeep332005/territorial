@@ -10,11 +10,14 @@ Integrates with:
 """
 
 import os
+import re
+import ast
 import sys
 import json
 import time
 import random
 import string
+import hashlib
 import subprocess
 import tempfile
 from typing import List, Dict, Optional, Callable, Any
@@ -22,7 +25,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from abhimanyux.models.schemas import (
-    Vulnerability, VulnerabilityLocation, Severity, VulnType, 
+    Vulnerability, VulnerabilityLocation, Severity, VulnType,
     AnalysisPhase, ExploitEvidence
 )
 
@@ -63,10 +66,16 @@ class FuzzEngine:
     - Logic errors
     """
     
-    def __init__(self):
+    def __init__(self, anvil=None):
         self.mutation_strategies = self._init_mutation_strategies()
         self.crash_registry = {}
         self.fuzz_count = 0
+        # Optional ANVILEngine dependency: when provided, mutation-strategy
+        # selection is weighted by the LLM's read of the target code instead
+        # of picking uniformly at random. Falls back to uniform selection
+        # when absent or when the call fails/doesn't parse -- this must
+        # never block fuzzing from running.
+        self.anvil = anvil
     
     def _init_mutation_strategies(self) -> Dict[str, Callable]:
         """Initialize mutation strategies"""
@@ -101,11 +110,19 @@ class FuzzEngine:
         crashes = []
         hangs = []
         start_time = time.time()
-        
+
+        strategy_names = list(self.mutation_strategies.keys())
+        weights = self._plan_fuzz_strategy(target_code, strategy_names) if self.anvil else None
+        strategy_weights = [weights[name] for name in strategy_names] if weights else None
+
         # Generate and test inputs
         for i in range(config.max_iterations):
-            # Select mutation strategy
-            strategy_name = random.choice(list(self.mutation_strategies.keys()))
+            # Select mutation strategy -- weighted by the model's read of
+            # this code when available, uniform random otherwise
+            if strategy_weights:
+                strategy_name = random.choices(strategy_names, weights=strategy_weights, k=1)[0]
+            else:
+                strategy_name = random.choice(strategy_names)
             strategy = self.mutation_strategies[strategy_name]
             
             # Generate mutated input
@@ -134,6 +151,63 @@ class FuzzEngine:
             unique_crashes=len(self.crash_registry)
         )
     
+    def _plan_fuzz_strategy(self, target_code: str, strategy_names: List[str]) -> Optional[Dict[str, float]]:
+        """
+        Ask the configured LLM which mutation strategies are most likely to
+        trigger a crash in THIS specific code (e.g. weight command_injection
+        higher for code that shells out, overflow_strings higher for code
+        that indexes/copies buffers), rather than treating every strategy as
+        equally likely regardless of what the code actually does.
+
+        Returns None (uniform selection) if no LLM is wired in, or the call
+        fails, or the response doesn't parse into anything usable -- a
+        planning failure must never prevent fuzzing from running.
+        """
+        if not self.anvil:
+            return None
+        try:
+            system_prompt = "You are a security fuzzing strategist choosing which mutation strategies to prioritize."
+            user_prompt = f"""CODE TO FUZZ:
+```
+{target_code[:1500]}
+```
+
+Available mutation strategies: {', '.join(strategy_names)}
+
+For each strategy likely to be relevant to THIS code (based on what functions or patterns it uses), respond with one line:
+STRATEGY_NAME: WEIGHT
+where WEIGHT is an integer from 1 (unlikely to matter) to 10 (highly relevant). Only list strategies you have an opinion on. Respond with nothing else."""
+
+            response = self.anvil.call_llm(system_prompt, user_prompt)
+
+            parsed = {}
+            for line in response.splitlines():
+                m = re.match(r'\s*([A-Za-z_]+)\s*:\s*(\d+)', line)
+                if not m:
+                    continue
+                name, weight = m.group(1).lower().replace('_', ''), int(m.group(2))
+                for strategy_name in strategy_names:
+                    if strategy_name.replace('_', '') == name:
+                        parsed[strategy_name] = max(1.0, min(10.0, float(weight)))
+
+            if not parsed:
+                return None
+            return {name: parsed.get(name, 1.0) for name in strategy_names}
+        except Exception:
+            return None
+
+    def _find_callable_functions(self, code: str) -> List[str]:
+        """Top-level function names defined in the target code, so a
+        generated test script can actually invoke them with the mutated
+        payload -- without this, a snippet that only defines functions
+        (never calling them) would never exercise the mutated input at all."""
+        try:
+            tree = ast.parse(code)
+        except SyntaxError:
+            return []
+        return [node.name for node in ast.walk(tree)
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))]
+
     def _test_input(self, code: str, test_input: Dict[str, Any], config: FuzzConfig) -> Dict[str, Any]:
         """Test a mutated input against the target code"""
         result = {
@@ -162,7 +236,10 @@ class FuzzEngine:
                     timeout=config.timeout_per_input
                 )
                 
-                # Check for sanitizer output
+                # Check for sanitizer output (native/instrumented targets --
+                # a plain Python subprocess will never actually produce
+                # these, but the check is harmless to keep for when this
+                # engine is pointed at ASAN/UBSAN-built binaries)
                 if proc.stderr:
                     sanitizer_keywords = [
                         "AddressSanitizer", "UBSan", "stack-overflow",
@@ -174,7 +251,19 @@ class FuzzEngine:
                             result["sanitizer_output"] = proc.stderr
                             result["crash_type"] = keyword
                             break
-                
+
+                # Check for an uncaught exception from actually calling a
+                # target function with the mutated payload (see
+                # _generate_test_script) -- this is the signal that matters
+                # for pure-Python targets, where sanitizer output never appears
+                if not result["crash"] and proc.stderr and "FUZZ_EXCEPTION:" in proc.stderr:
+                    exc_line = next(
+                        (l for l in proc.stderr.splitlines() if "FUZZ_EXCEPTION:" in l), ""
+                    )
+                    result["crash"] = True
+                    result["sanitizer_output"] = proc.stderr
+                    result["crash_type"] = exc_line.split("FUZZ_EXCEPTION:", 1)[-1].strip()
+
                 # Check for segfault-like behavior
                 if proc.returncode == -11:  # SIGSEGV
                     result["crash"] = True
@@ -192,28 +281,46 @@ class FuzzEngine:
         return result
     
     def _generate_test_script(self, code: str, test_input: Dict[str, Any]) -> str:
-        """Generate a test script with the mutated input"""
-        # Escape the code for embedding
-        escaped_code = code.replace('\\', '\\\\').replace('"""', '\\"\\"\\"')
-        
-        input_data = json.dumps(test_input)
-        
+        """
+        Generate a test script that defines the target code AND actually
+        calls each top-level function it finds with the mutated payload.
+
+        The prior version only exec'd the code and injected `test_input` as
+        a global -- for a snippet that just defines functions without ever
+        calling them (the common case for the vulnerable-function snippets
+        this engine is meant to fuzz), the mutated input was never actually
+        exercised against anything. Also uses repr() to embed the code and
+        payload rather than manual quote-escaping + json.loads('{...}'),
+        which broke outright on any payload containing a single quote
+        (i.e. every SQL/command-injection payload in this file's own
+        mutation strategies).
+        """
+        function_names = self._find_callable_functions(code)
+        payload = test_input.get("value") if isinstance(test_input, dict) else test_input
+
         return f'''
 import sys
-import json
 
-# Target code
-code = """{code}"""
+code = {code!r}
+target_functions = {function_names!r}
+payload = {payload!r}
 
-# Input data
-input_data = json.loads('{input_data}')
-
-# Execute with the test input
+namespace = {{"__builtins__": __builtins__}}
 try:
-    exec(code, {{"__builtins__": __builtins__, "test_input": input_data}})
-except Exception as e:
-    # Expected for non-crash errors
+    exec(code, namespace)
+except Exception:
     pass
+
+for _fname in target_functions:
+    _fn = namespace.get(_fname)
+    if not callable(_fn):
+        continue
+    try:
+        _fn(payload)
+    except TypeError:
+        pass
+    except Exception as e:
+        print(f"FUZZ_EXCEPTION: {{type(e).__name__}}: {{e}}", file=sys.stderr)
 '''
     
     # ==================== Mutation Strategies ====================

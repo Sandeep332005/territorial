@@ -11,7 +11,7 @@
 ABHIMANYU X CORE discovers, patches, and verifies fixes for security vulnerabilities in Python and C source files, and remembers what it's seen so later scans can build on earlier ones. It combines:
 
 - **REWIND Engine** — pattern/heuristic-based static analysis (Python + C)
-- **Fuzz Engine** — randomized mutation-based dynamic testing
+- **Fuzz Engine** — mutation-based dynamic testing, with LLM-weighted strategy selection when wired to ANVIL
 - **ANVIL Engine** — LLM-based patch generation, with a self-critique pass and retrieval from prior fixes
 - **Verification Pipeline** — re-scan-based exploit checking, syntax/compile checks, and regression/behavior checks
 - **Immune Memory** — a SQLite-backed record of vulnerabilities, patches, and their outcomes, used to recalibrate detection confidence over time
@@ -174,7 +174,9 @@ A confidence-feedback loop (`evolve()`) recalibrates each rule's confidence scor
 
 ### Fuzz Engine (Dynamic Analysis)
 
-Randomized mutation-based fuzzing — despite the name suggesting otherwise, mutation strategy selection is `random.choice` over a fixed set of generators (bit flipping, boundary values, format strings, SQL/command injection payloads, overflow strings), not model-driven. It does genuinely execute generated test scripts against the target and watch for crashes/hangs.
+Mutation-based fuzzing (bit flipping, boundary values, format strings, SQL/command injection payloads, overflow strings) that actually executes generated test scripts against the target's own functions — not just `exec`s the code and hopes something references the payload, which was a real bug this engine had until this session (a target that only defined functions, never calling them, could never be fuzzed at all).
+
+When given an ANVIL instance, strategy selection is genuinely model-driven: before fuzzing starts, the LLM reads the target code once and weights which mutation strategies are most likely to matter for it (e.g. command-injection payloads weighted higher for code that shells out), and iteration then samples from that weighted distribution instead of picking uniformly at random. Falls back to uniform random selection if no LLM is wired in or the planning call fails — this can never block fuzzing from running.
 
 ### ANVIL Engine (Patch Generation)
 

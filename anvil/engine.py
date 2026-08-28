@@ -98,7 +98,7 @@ PATCHED CODE:
 EXPLANATION:
 <what changed and why>"""
 
-        response = self._call_llm("You are a security expert.", combined_prompt)
+        response = self.call_llm("You are a security expert.", combined_prompt)
 
         # Parse the combined response
         root_cause = self._extract_section(response, "ROOT CAUSE:", "PATCHED CODE:")
@@ -209,7 +209,7 @@ PATCHED CODE:
 EXPLANATION:
 <what changed and why>"""
 
-            revised = self._call_llm(
+            revised = self.call_llm(
                 "You are a security expert revising a patch based on reviewer feedback.",
                 revision_prompt
             )
@@ -247,7 +247,7 @@ Respond in this EXACT format:
 SCORE: <integer 1-10>
 FEEDBACK: <one or two sentences on what, if anything, is still wrong>"""
 
-        response = self._call_llm(system_prompt, user_prompt)
+        response = self.call_llm(system_prompt, user_prompt)
         score_match = re.search(r'SCORE:\s*(\d+)', response)
         score = int(score_match.group(1)) if score_match else 5
         feedback = self._extract_section(response, "FEEDBACK:", None) or "No specific feedback provided."
@@ -293,7 +293,7 @@ Full context:
 Provide root cause analysis (2-3 sentences):"""
 
         # Call LLM
-        response = self._call_llm(system_prompt, user_prompt)
+        response = self.call_llm(system_prompt, user_prompt)
         return response
     
     def _generate_patch(self, code: str, vulnerability: Vulnerability, root_cause: str) -> str:
@@ -325,7 +325,7 @@ ORIGINAL CODE:
 
 Generate the complete patched code:"""
 
-        response = self._call_llm(system_prompt, user_prompt)
+        response = self.call_llm(system_prompt, user_prompt)
         
         # Extract code from response
         patched_code = self._extract_code(response)
@@ -348,7 +348,7 @@ Explain:
 2. How the fix addresses it
 3. Why the fix is secure"""
 
-        return self._call_llm(system_prompt, user_prompt)
+        return self.call_llm(system_prompt, user_prompt)
     
     def _get_fix_instructions(self, vuln_type: VulnType) -> str:
         """Get specific fix instructions based on vulnerability type"""
@@ -421,7 +421,7 @@ Example: import secrets; token = secrets.token_hex(32)""",
         
         return instructions.get(vuln_type, "Apply standard security best practices.")
     
-    def _call_llm(self, system_prompt: str, user_prompt: str) -> str:
+    def call_llm(self, system_prompt: str, user_prompt: str) -> str:
         """Call the LLM for analysis"""
         
         if self.config.provider == "local":

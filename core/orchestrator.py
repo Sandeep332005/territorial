@@ -50,9 +50,9 @@ class AbhimanyuXCore:
         """
         # Initialize engines
         self.rewind = REWINDEngine()
-        self.fuzzer = FuzzEngine()
         self.memory = ImmuneMemoryStore(db_path)
         self.anvil = ANVILEngine(llm_config, memory=self.memory)
+        self.fuzzer = FuzzEngine(anvil=self.anvil)
         self.verifier = VerificationEngine()
         
         # Statistics

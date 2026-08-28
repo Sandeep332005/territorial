@@ -261,10 +261,68 @@ class TestFuzzEngine:
 '''
         config = FuzzConfig(target_path="test.py", max_iterations=10, timeout_per_input=2)
         result = self.engine.fuzz(code, config)
-        
+
         assert result.iterations == 10
         assert result.duration > 0
-    
+
+    def test_fuzz_actually_calls_target_function(self):
+        """Regression guard: the generated test script must actually invoke
+        a top-level function with the mutated payload. Before this fix, the
+        script only exec'd the code and injected `test_input` as an unused
+        global, so a function that was never called could never crash no
+        matter how buggy it was or how many iterations ran."""
+        code = '''def parse_header(data):
+    return data[0] + data[4]
+'''
+        config = FuzzConfig(target_path="test.py", max_iterations=100, timeout_per_input=3)
+        result = self.engine.fuzz(code, config)
+
+        assert len(result.crashes) > 0
+        assert any("IndexError" in c["crash_type"] for c in result.crashes)
+
+    def test_generate_test_script_handles_quoted_payloads(self):
+        """Regression guard: payloads containing quotes (every SQL/command
+        injection payload this engine generates) used to break the
+        generated script via json.loads('{...}') string interpolation.
+        repr()-based embedding must survive them."""
+        code = "def f(x):\n    return x\n"
+        payload = {"type": "sql_injection", "value": "' OR '1'='1"}
+
+        script = self.engine._generate_test_script(code, payload)
+        compile(script, "<test>", "exec")  # raises SyntaxError if broken
+
+    def test_plan_fuzz_strategy_parses_llm_weights(self):
+        """Model-driven strategy selection: the LLM's per-strategy weights
+        should be parsed and applied, with unmentioned strategies defaulting
+        to a neutral weight rather than being dropped."""
+        class FakeAnvil:
+            def call_llm(self, system_prompt, user_prompt):
+                return "command_injection: 9\noverflow_strings: 8\nsql_injection: 2"
+
+        engine = FuzzEngine(anvil=FakeAnvil())
+        weights = engine._plan_fuzz_strategy("import os", list(engine.mutation_strategies.keys()))
+
+        assert weights["command_injection"] == 9.0
+        assert weights["overflow_strings"] == 8.0
+        assert weights["sql_injection"] == 2.0
+        assert weights["bit_flip"] == 1.0  # unmentioned -> neutral default
+
+    def test_plan_fuzz_strategy_falls_back_on_llm_failure(self):
+        """A broken/unavailable LLM must fall back to uniform selection
+        (None), never raise or block fuzzing from running."""
+        class BrokenAnvil:
+            def call_llm(self, system_prompt, user_prompt):
+                raise RuntimeError("LLM unavailable")
+
+        engine = FuzzEngine(anvil=BrokenAnvil())
+        weights = engine._plan_fuzz_strategy("x = 1", list(engine.mutation_strategies.keys()))
+
+        assert weights is None
+
+    def test_plan_fuzz_strategy_none_without_anvil(self):
+        """No anvil wired in -> no planning call attempted, uniform selection."""
+        assert self.engine._plan_fuzz_strategy("x = 1", list(self.engine.mutation_strategies.keys())) is None
+
     def test_stats(self):
         """Test statistics tracking"""
         code = "x = 1"
