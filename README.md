@@ -226,7 +226,11 @@ pytest abhimanyux/tests/ -v
 pytest abhimanyux/tests/ --cov=abhimanyux --cov-report=html
 ```
 
-52 tests currently pass, covering REWIND's Python and C rules, the confidence feedback loop, ANVIL's retrieval-grounding, the Verifier's differential exploit-replay (including a regression test guarding against silently accepting a no-op patch), Immune Memory's capability-atom linking, and the Watch engine's event transitions.
+57 tests currently pass, covering REWIND's Python and C rules, the confidence feedback loop, ANVIL's retrieval-grounding, the Fuzz Engine's model-driven strategy selection and its actually-calls-the-target-function fix, the Verifier's differential exploit-replay (including a regression test guarding against silently accepting a no-op patch), Immune Memory's capability-atom linking, and the Watch engine's event transitions.
+
+### Platform compatibility
+
+Verified end-to-end (install + full test suite + a live scan) on macOS and inside a clean **Debian 12** container — the base distribution BOSS Linux (the Indian government's Debian derivative) is built on. BOSS Linux itself hasn't been tested directly (no public image exists to test against), but the engine is pure Python + SQLite + subprocess calls with no OS-specific dependencies beyond a Python 3.10+ interpreter and, for C-language verification, a C compiler — both standard on any Debian-family system. If you have access to an actual BOSS Linux machine, re-run `pytest abhimanyux/tests/ -v` there before relying on this claim in a deployment.
 
 ## 📁 Project Structure
 
@@ -287,6 +291,41 @@ DEEPSEEK_API_KEY=your_api_key
 # Optional: Custom API URL
 DEEPSEEK_API_URL=https://api.deepseek.com/v1/chat/completions
 ```
+
+### Air-gapped / offline deployment (Ollama)
+
+On defence infrastructure with no internet access, ANVIL must use a local
+Ollama model — the cloud providers (Claude/GPT/Gemini/DeepSeek) need a live
+connection and simply won't work. `ollama pull` itself needs internet, so
+the model has to be fetched on a connected machine and carried over:
+
+```bash
+# On an internet-connected machine (same OS/architecture as the target
+# ideally, to avoid binary-compatibility surprises):
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull dolphin-llama3:8b
+
+# Ollama's model store is a plain, content-addressed local directory
+# (manifests + blobs under ~/.ollama/models) -- copying it wholesale to
+# another machine with a matching Ollama version is Ollama's own
+# documented mechanism for offline transfer, not something specific to
+# this project:
+tar czf ollama-offline-bundle.tar.gz -C ~ .ollama
+cp "$(which ollama)" ollama-binary
+
+# Move ollama-binary and ollama-offline-bundle.tar.gz to the air-gapped
+# machine via your approved transfer medium, then there:
+sudo cp ollama-binary /usr/local/bin/ollama
+sudo chmod +x /usr/local/bin/ollama
+tar xzf ollama-offline-bundle.tar.gz -C ~
+ollama serve &
+ollama list   # should show the model with no network access needed
+```
+
+This transfer mechanism is Ollama's standard offline pattern, not something
+verified end-to-end in this repo's own test suite — if you rely on it for
+a real deployment, confirm `ollama list`/`ollama run` actually work on the
+target machine with networking disabled before depending on it.
 
 ## 🎯 Demo Scenario
 
