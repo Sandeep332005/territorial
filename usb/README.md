@@ -112,10 +112,10 @@ cd /abhimanyux
 source venv/bin/activate
 
 # Scan a directory
-PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform /path/to/project
+PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform /path/to/project
 
 # Scan a file
-PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform target.py
+PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform target.py
 
 # Show hardware info
 abhimanyux hardware

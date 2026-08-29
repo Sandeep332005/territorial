@@ -20,7 +20,7 @@ import os
 import time
 import hashlib
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Callable, Dict, List, Optional, Tuple
 
 from abhimanyux.models.schemas import Vulnerability
@@ -33,7 +33,7 @@ class WatchEvent:
     file_path: str
     vulnerability: Optional[Vulnerability] = None
     detail: str = ""
-    observed_at: datetime = field(default_factory=datetime.utcnow)
+    observed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class WatchEngine:

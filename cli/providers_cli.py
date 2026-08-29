@@ -19,7 +19,7 @@ import json
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(project_root))
 
-from abhimanyux.platform.providers_v2 import (
+from abhimanyux.runtime.providers_v2 import (
     ModelSelector, MODEL_REGISTRY, ProviderCategory, ProviderType
 )
 
@@ -147,7 +147,7 @@ def check_health():
 
 def test_model(model_name: str):
     """Test a specific model"""
-    from abhimanyux.platform.providers_v2 import ProviderFactory
+    from abhimanyux.runtime.providers_v2 import ProviderFactory
     
     print(f"\nTesting model: {model_name}")
     print("-"*40)

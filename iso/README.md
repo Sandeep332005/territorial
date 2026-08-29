@@ -121,7 +121,7 @@ abhimanyux setup
 ### Python API
 
 ```python
-from abhimanyux.platform.abhimanyux_platform import AbhimanyuXPlatform
+from abhimanyux.runtime.abhimanyux_platform import AbhimanyuXPlatform
 
 # Auto-detect hardware and select best model
 platform = AbhimanyuXPlatform()

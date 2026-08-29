@@ -20,14 +20,14 @@ import re
 import json
 import time
 from typing import Dict, List, Optional, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass, field
 
-from abhimanyux.platform.providers import (
+from abhimanyux.runtime.providers import (
     ProviderFactory, ModelSelector, MODEL_REGISTRY,
     LLMProvider, ModelConfig, ProviderType
 )
-from abhimanyux.platform.pipeline import (
+from abhimanyux.runtime.pipeline import (
     MultiStagePipeline, PipelineConfig, 
     detect_language, ProgrammingLanguage, CVSSScore, ExploitTrace
 )
@@ -192,7 +192,7 @@ class AbhimanyuXPlatform:
         6. Immune memory storage
         """
         self.scan_count += 1
-        scan_id = f"scan-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{self.scan_count:04d}"
+        scan_id = f"scan-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{self.scan_count:04d}"
         
         # Detect language if not specified
         if language is None:
@@ -264,7 +264,7 @@ class AbhimanyuXPlatform:
             verifications=[],
             immune_records=[],
             summary=summary,
-            completed_at=datetime.utcnow()
+            completed_at=datetime.now(timezone.utc)
         )
     
     def _ai_enhanced_detection(self, code: str, 
@@ -336,7 +336,7 @@ Code:
             type_counts[v.vuln_type.value] = type_counts.get(v.vuln_type.value, 0) + 1
         
         return {
-            "scan_id": f"scan-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+            "scan_id": f"scan-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
             "target": filename,
             "language": language.value,
             "model_used": self.config.model_name,

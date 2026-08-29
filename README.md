@@ -147,6 +147,44 @@ curl -X POST http://localhost:8000/api/scan/full \
 curl http://localhost:8000/api/memory/stats
 ```
 
+### SENTINEL-X CORE — Web Laboratory
+
+A 3D "cyber immune laboratory" UI for watching one vulnerability travel the
+full lifecycle (REWIND → discovery → ANVIL reasoning → patch → verification
+→ Immune Memory), plus an ad-hoc scan bench for arbitrary code.
+
+One-time setup (recreates the demo target's git history + fuzz corpus):
+
+```bash
+bash scripts/setup_demo_target.sh
+```
+
+Run it (from this repo's parent directory, so `abhimanyux` resolves as a package):
+
+```bash
+PYTHONPATH=.. python -m abhimanyux.api.dashboard
+# Opens at http://localhost:5050
+```
+
+- `/` — the live 3D laboratory + Judge Mode ("Start Autonomous Demo") + interactive scan bench
+- `/case-file` — a static write-up of one real captured run
+
+By default ANVIL calls a local Ollama model (`qwen2.5-coder:3b` at
+`http://127.0.0.1:21434`, edited in `api/dashboard.py`'s `get_orchestrator()`)
+rather than a cloud API — see `anvil/engine.py`'s `LLMConfig` to point it
+elsewhere. The Fuzz Engine and Dynamic Analysis panels are labeled clearly
+where their numbers are real (a real AFL++/ASan crash was found and is
+replayed live) versus fixed placeholder telemetry (execution rate/coverage
+%, where this platform's afl-cc/ASan instrumentation doesn't currently
+cooperate — see `sentinel/real_fuzzing.py`).
+
+Features:
+- Real-time vulnerability detection, driven by actual WebSocket events (no polling)
+- 3D scene reacts to real pipeline state; falls back to a 2D view if WebGL is unavailable
+- Patch generation with compiler-verified build/regression status
+- Immune memory statistics and a live DNA-pattern similarity match demo
+- Dark-themed responsive UI
+
 ### Docker
 
 ```bash
@@ -252,8 +290,9 @@ abhimanyux/
 │   └── engine.py
 ├── models/                # Data models
 │   └── schemas.py
-├── api/                   # FastAPI backend
-│   └── server.py
+├── api/                   # API servers
+│   ├── server.py          # FastAPI REST backend
+│   └── dashboard.py       # Web dashboard (Flask)
 ├── vulnerable_targets/    # Test vulnerable code
 │   ├── web_app.py
 │   └── vulnerable.c

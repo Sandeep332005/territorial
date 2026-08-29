@@ -169,7 +169,7 @@ Version=1.0
 Type=Application
 Name=ABHIMANYU X
 Comment=Autonomous Cyber Reasoning System
-Exec=bash -c "cd /abhimanyux && source venv/bin/activate && PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform"
+Exec=bash -c "cd /abhimanyux && source venv/bin/activate && PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform"
 Icon=security
 Terminal=true
 Categories=Development;Security;
@@ -183,7 +183,7 @@ echo ""
 echo "Quick start:"
 echo "  cd /abhimanyux"
 echo "  source venv/bin/activate"
-echo "  PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform <target>"
+echo "  PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform <target>"
 echo ""
 echo "Or double-click 'ABHIMANYU X' on desktop"
 echo ""

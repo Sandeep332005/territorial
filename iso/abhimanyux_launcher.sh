@@ -228,7 +228,7 @@ install_abhimanyux() {
 SENTINELX_HOME="$HOME/abhimanyux"
 source "$SENTINELX_HOME/venv/bin/activate"
 cd "$SENTINELX_HOME"
-PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform "$@"
+PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform "$@"
 LAUNCHER
     chmod +x "$HOME/.local/bin/abhimanyux"
     
@@ -255,7 +255,7 @@ test_installation() {
     cd "$INSTALL_DIR"
     source venv/bin/activate
     PYTHONPATH=. python -c "
-from abhimanyux.platform.abhimanyux_platform import AbhimanyuXPlatform
+from abhimanyux.runtime.abhimanyux_platform import AbhimanyuXPlatform
 p = AbhimanyuXPlatform()
 print('Platform initialized successfully')
 print(f'Model: {p.config.model_name}')

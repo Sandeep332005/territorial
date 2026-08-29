@@ -15,7 +15,7 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from abhimanyux.platform.providers import ModelSelector, MODEL_REGISTRY, ProviderType
+from abhimanyux.runtime.providers import ModelSelector, MODEL_REGISTRY, ProviderType
 
 
 def detect_hardware():

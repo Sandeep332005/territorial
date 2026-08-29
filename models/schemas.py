@@ -5,7 +5,7 @@ Pydantic schemas for the autonomous cyber reasoning system
 
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 
@@ -79,7 +79,7 @@ class Vulnerability(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
     source: AnalysisPhase
     raw_analysis: Optional[str] = None
-    discovered_at: datetime = Field(default_factory=datetime.utcnow)
+    discovered_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class ExploitEvidence(BaseModel):
@@ -104,7 +104,7 @@ class Patch(BaseModel):
     explanation: str
     status: PatchStatus = PatchStatus.GENERATED
     verification_results: Optional[Dict[str, Any]] = None
-    generated_at: datetime = Field(default_factory=datetime.utcnow)
+    generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ==================== Verification Models ====================
@@ -118,7 +118,7 @@ class VerificationResult(BaseModel):
     behavior_preserved: bool = False
     all_tests_pass: bool = False
     details: Dict[str, Any] = {}
-    verified_at: datetime = Field(default_factory=datetime.utcnow)
+    verified_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ==================== Immune Memory Models ====================
@@ -141,8 +141,8 @@ class VulnerabilityDNA(BaseModel):
     capability_grant: str = ""
     related_dna_ids: List[str] = []
     occurrences: int = 0
-    first_seen: datetime = Field(default_factory=datetime.utcnow)
-    last_seen: datetime = Field(default_factory=datetime.utcnow)
+    first_seen: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    last_seen: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class ImmuneRecord(BaseModel):
@@ -152,7 +152,7 @@ class ImmuneRecord(BaseModel):
     patch: Optional[Patch] = None
     verification: Optional[VerificationResult] = None
     dna: Optional[VulnerabilityDNA] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ==================== Scan Models ====================
@@ -175,7 +175,7 @@ class ScanResult(BaseModel):
     verifications: List[VerificationResult] = []
     immune_records: List[ImmuneRecord] = []
     summary: Dict[str, Any] = {}
-    started_at: datetime = Field(default_factory=datetime.utcnow)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = None
 
 

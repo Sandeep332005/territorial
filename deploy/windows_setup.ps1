@@ -80,7 +80,7 @@ if (-not $ollamaRunning) {
 # Test hardware detection
 Write-Host "[7/8] Testing hardware detection..." -ForegroundColor Yellow
 python -c @"
-from abhimanyux.platform.providers import ModelSelector
+from abhimanyux.runtime.providers import ModelSelector
 s = ModelSelector()
 hw = s.hardware
 print(f'  CPU: {hw.cpu_cores} cores')
@@ -96,7 +96,7 @@ for m in models[:5]:
 
 # Test platform
 Write-Host "[8/8] Testing platform..." -ForegroundColor Yellow
-python -c "from abhimanyux.platform.abhimanyux_platform import AbhimanyuXPlatform; p=AbhimanyuXPlatform(); print('  Platform initialized successfully')"
+python -c "from abhimanyux.runtime.abhimanyux_platform import AbhimanyuXPlatform; p=AbhimanyuXPlatform(); print('  Platform initialized successfully')"
 
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Green
@@ -111,5 +111,5 @@ Write-Host "  - 954 GB SSD" -ForegroundColor White
 Write-Host ""
 Write-Host "Quick start:" -ForegroundColor Yellow
 Write-Host "  .\venv\Scripts\Activate.ps1" -ForegroundColor White
-Write-Host "  python -m abhimanyux.platform.abhimanyux_platform --list-hardware" -ForegroundColor White
-Write-Host "  python -m abhimanyux.platform.abhimanyux_platform target.py" -ForegroundColor White
+Write-Host "  python -m abhimanyux.runtime.abhimanyux_platform --list-hardware" -ForegroundColor White
+Write-Host "  python -m abhimanyux.runtime.abhimanyux_platform target.py" -ForegroundColor White

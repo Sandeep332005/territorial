@@ -15,16 +15,16 @@ import json
 import time
 import re
 from typing import Dict, List, Optional, Any, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from abhimanyux.platform.providers_v2 import (
+from abhimanyux.runtime.providers_v2 import (
     ProviderFactory, ModelSelector, ModelConfig,
     LLMProvider, ProviderType, ProviderCategory,
     ProviderManager, MODEL_REGISTRY, HardwareProfile
 )
-from abhimanyux.platform.pipeline import (
+from abhimanyux.runtime.pipeline import (
     MultiStagePipeline, PipelineConfig,
     detect_language, ProgrammingLanguage, CVSSScore
 )
@@ -243,7 +243,7 @@ class AbhimanyuXPlatform:
         5. Immune Memory Storage
         """
         self.scan_count += 1
-        scan_id = f"scan-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{self.scan_count:04d}"
+        scan_id = f"scan-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{self.scan_count:04d}"
         
         if language is None:
             language = detect_language(filename)
@@ -333,7 +333,7 @@ class AbhimanyuXPlatform:
             verifications=[],
             immune_records=[],
             summary=summary,
-            completed_at=datetime.utcnow()
+            completed_at=datetime.now(timezone.utc)
         )
     
     def _ai_enhanced_detection(self, code: str,
@@ -407,7 +407,7 @@ Code:
             source_counts[v.source] = source_counts.get(v.source, 0) + 1
         
         return {
-            "scan_id": f"scan-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+            "scan_id": f"scan-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
             "target": filename,
             "language": language.value,
             "model_used": self.active_model or "pattern-only",

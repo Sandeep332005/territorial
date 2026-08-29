@@ -31,10 +31,10 @@ python abhimanyux/cli/providers_cli.py check
 
 ```bash
 # Auto-selects best local model
-PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform_v2 target.py
+PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform_v2 target.py
 
 # Force specific model
-PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform_v2 target.py --model qwen2.5-coder-7b
+PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform_v2 target.py --model qwen2.5-coder-7b
 ```
 
 ### 3. Use API Model
@@ -44,17 +44,17 @@ PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform_v2 target.py --mo
 export ANTHROPIC_API_KEY=your_key_here
 
 # Use Claude
-PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform_v2 target.py --model claude-sonnet-4
+PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform_v2 target.py --model claude-sonnet-4
 
 # Or force API provider
-PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform_v2 target.py --provider api
+PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform_v2 target.py --provider api
 ```
 
 ### 4. Use Custom Endpoint
 
 ```bash
 # Add custom endpoint
-PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform_v2 target.py \
+PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform_v2 target.py \
   --add-endpoint my-server http://192.168.1.100:8080/v1/chat/completions my-model
 
 # Or use the CLI
@@ -77,7 +77,7 @@ curl -fsSL https://ollama.com/install.sh | sh
 ollama pull qwen2.5-coder:7b-instruct-q4_K_M
 
 # Models are auto-detected
-PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform_v2 target.py
+PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform_v2 target.py
 ```
 
 **Best models by hardware:**
@@ -175,7 +175,7 @@ If the primary model fails, ABHIMANYU X automatically falls back:
 3. **Other categories** (local → API → custom)
 
 ```python
-from abhimanyux.platform.abhimanyux_platform_v2 import AbhimanyuXPlatform
+from abhimanyux.runtime.abhimanyux_platform_v2 import AbhimanyuXPlatform
 
 platform = AbhimanyuXPlatform()
 result, model_used = platform.provider_manager.generate_with_fallback(
@@ -243,7 +243,7 @@ python abhimanyux/cli/providers_cli.py add my-server http://url model
 ## Python API
 
 ```python
-from abhimanyux.platform.abhimanyux_platform_v2 import (
+from abhimanyux.runtime.abhimanyux_platform_v2 import (
     AbhimanyuXPlatform, PlatformConfig
 )
 
@@ -276,9 +276,9 @@ result = platform.scan_file("target.py")
 ollama pull qwen2.5-coder:32b-instruct-q4_K_M
 
 # Run scan
-PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform_v2 target.py --model qwen2.5-coder-32b
+PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform_v2 target.py --model qwen2.5-coder-32b
 
 # Or use API for best quality
 export ANTHROPIC_API_KEY=your_key
-PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform_v2 target.py --model claude-sonnet-4
+PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform_v2 target.py --model claude-sonnet-4
 ```

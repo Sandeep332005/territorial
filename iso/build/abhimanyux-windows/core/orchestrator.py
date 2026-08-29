@@ -13,7 +13,7 @@ Coordinates all engines:
 import os
 import json
 from typing import List, Dict, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from abhimanyux.models.schemas import (
@@ -75,7 +75,7 @@ class AbhimanyuXCore:
             Complete scan result with vulnerabilities, patches, and verifications
         """
         self.scan_count += 1
-        scan_id = f"scan-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{self.scan_count:04d}"
+        scan_id = f"scan-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{self.scan_count:04d}"
         
         # Read target
         if os.path.isfile(target_path):
@@ -161,7 +161,7 @@ class AbhimanyuXCore:
             verifications=all_verifications,
             immune_records=all_immune_records,
             summary=summary,
-            completed_at=datetime.utcnow()
+            completed_at=datetime.now(timezone.utc)
         )
     
     def scan_code(self, code: str, filename: str = "inline.py") -> ScanResult:
@@ -176,7 +176,7 @@ class AbhimanyuXCore:
             Scan result
         """
         self.scan_count += 1
-        scan_id = f"scan-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{self.scan_count:04d}"
+        scan_id = f"scan-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{self.scan_count:04d}"
         
         # Static analysis
         vulns = self.rewind.scan(code, filename)
@@ -213,7 +213,7 @@ class AbhimanyuXCore:
             verifications=verifications,
             immune_records=[],
             summary=summary,
-            completed_at=datetime.utcnow()
+            completed_at=datetime.now(timezone.utc)
         )
     
     def get_memory_stats(self) -> Dict:

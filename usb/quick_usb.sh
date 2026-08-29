@@ -93,7 +93,7 @@ ollama pull qwen2.5-coder:7b-instruct-q4_K_M
 
 echo ""
 echo "ABHIMANYU X installed!"
-echo "Run: cd /abhimanyux && source venv/bin/activate && PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform"
+echo "Run: cd /abhimanyux && source venv/bin/activate && PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform"
 INSTALL
 chmod +x "$BUILD_DIR/iso/abhimanyux/install.sh"
 

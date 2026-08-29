@@ -71,28 +71,39 @@ class ANVILEngine:
         # Single combined prompt for efficiency with local models
         fix_instructions = self._get_fix_instructions(vulnerability.vuln_type)
         similar_patch = self._retrieve_similar_patch(vulnerability, code)
+        fence, lang_name = self._lang_tag(vulnerability)
 
-        combined_prompt = f"""You are a security expert. Analyze and fix this vulnerability.
+        combined_prompt = f"""You are a security expert. Analyze and fix this vulnerability in the {lang_name} file below.
 
 VULNERABILITY: {vulnerability.vuln_type.value}
 SEVERITY: {vulnerability.severity.value}
 DESCRIPTION: {vulnerability.description}
 LINE: {vulnerability.location.line_start}
-CODE SNIPPET:
+FLAGGED LINE:
 ```\n{vulnerability.location.code_snippet or 'Not available'}
+```
+
+FULL SOURCE FILE ({vulnerability.location.file_path or 'unknown'}):
+```{fence}
+{code}
 ```
 
 Fix guidelines:
 {fix_instructions}
 {self._format_similar_patch(similar_patch)}
+Rules:
+1. Return the ENTIRE file above with the minimal fix applied — same includes, same struct/type definitions, same function signatures.
+2. Do NOT invent new fields, functions, or variables that are not already present in the file above.
+3. Do NOT rewrite unrelated code.
+
 Respond in this EXACT format:
 
 ROOT CAUSE:
 <2-3 sentence root cause analysis>
 
 PATCHED CODE:
-```python
-<complete patched code>
+```{fence}
+<complete patched file, same structure as the source above>
 ```
 
 EXPLANATION:
@@ -199,10 +210,10 @@ CURRENT PATCHED CODE:
 {patched_code[:2000]}
 ```
 
-Revise the patch to address the feedback. Respond in this EXACT format:
+Revise the patch to address the feedback. Do NOT invent new fields, functions, or variables that are not already present in the code above. Respond in this EXACT format:
 
 PATCHED CODE:
-```python
+```{self._lang_tag(vulnerability)[0]}
 <complete revised code>
 ```
 
@@ -286,7 +297,7 @@ CODE SNIPPET:
 ```
 
 Full context:
-```python
+```{self._lang_tag(vulnerability)[0]}
 {code[:2000]}
 ```
 
@@ -302,7 +313,8 @@ Provide root cause analysis (2-3 sentences):"""
         # Get specific fix instructions based on vulnerability type
         fix_instructions = self._get_fix_instructions(vulnerability.vuln_type)
         
-        system_prompt = f"""You are an expert Python developer specializing in security patches.
+        fence, lang_name = self._lang_tag(vulnerability)
+        system_prompt = f"""You are an expert {lang_name} developer specializing in security patches.
 Generate a COMPLETE patched version of the code that fixes the vulnerability.
 Apply these fix guidelines:
 {fix_instructions}
@@ -311,7 +323,7 @@ Rules:
 1. Return ONLY the complete patched code
 2. Preserve all functionality that is not vulnerable
 3. Use minimal changes
-4. Add security comments where appropriate"""
+4. Do NOT invent new fields, functions, or variables that are not already present in the code"""
 
         user_prompt = f"""Fix this vulnerability in the code:
 
@@ -319,7 +331,7 @@ VULNERABILITY: {vulnerability.vuln_type.value}
 ROOT CAUSE: {root_cause}
 
 ORIGINAL CODE:
-```python
+```{fence}
 {code}
 ```
 
@@ -618,18 +630,25 @@ Example: import secrets; token = secrets.token_hex(32)""",
             return "Apply security best practices for this vulnerability type."
     
     def _extract_code(self, response: str) -> str:
-        """Extract code from LLM response"""
-        # Try to extract code block
-        code_match = re.search(r'```python\n(.*?)```', response, re.DOTALL)
+        """Extract code from LLM response, accepting any fence language tag
+        (```c, ```python, bare ```, etc.) since the source language varies
+        per vulnerability and a model doesn't always follow the requested tag."""
+        code_match = re.search(r'```\w*\n(.*?)```', response, re.DOTALL)
         if code_match:
             return code_match.group(1).strip()
-        
-        code_match = re.search(r'```\n(.*?)```', response, re.DOTALL)
-        if code_match:
-            return code_match.group(1).strip()
-        
+
         # Return full response if no code block found
         return response.strip()
+
+    def _lang_tag(self, vulnerability: Vulnerability) -> str:
+        """Fence language tag and human-readable name for the vulnerability's
+        source file, so prompts/output framing match the actual language
+        instead of always assuming Python."""
+        filename = (vulnerability.location.file_path or "") if vulnerability.location else ""
+        from abhimanyux.rewind.engine import REWINDEngine
+        if filename.endswith(REWINDEngine.C_EXTENSIONS):
+            return "c", "C"
+        return "python", "Python"
     
     def get_stats(self) -> Dict[str, int]:
         """Get ANVIL statistics"""

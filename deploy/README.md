@@ -36,7 +36,7 @@ pip install -r requirements.txt
 ollama pull qwen2.5-coder:7b-instruct-q4_K_M
 
 # 5. Test platform
-python -m abhimanyux.platform.abhimanyux_platform --list-hardware
+python -m abhimanyux.runtime.abhimanyux_platform --list-hardware
 ```
 
 ## Model Recommendations for RTX 4060 (12 GB)
@@ -77,16 +77,16 @@ ollama pull deepseek-coder-v2:16b
 .\venv\Scripts\Activate.ps1
 
 # Scan a file
-python -m abhimanyux.platform.abhimanyux_platform target.py
+python -m abhimanyux.runtime.abhimanyux_platform target.py
 
 # Scan a directory
-python -m abhimanyux.platform.abhimanyux_platform C:\path\to\project
+python -m abhimanyux.runtime.abhimanyux_platform C:\path\to\project
 
 # List available models
-python -m abhimanyux.platform.abhimanyux_platform --list-models
+python -m abhimanyux.runtime.abhimanyux_platform --list-models
 
 # Show hardware info
-python -m abhimanyux.platform.abhimanyux_platform --list-hardware
+python -m abhimanyux.runtime.abhimanyux_platform --list-hardware
 ```
 
 ### Using Frontier Models (Optional)
@@ -99,15 +99,15 @@ $env:GEMINI_API_KEY = "your_key_here"
 $env:DEEPSEEK_API_KEY = "your_key_here"
 
 # Scan with specific provider
-python -m abhimanyux.platform.abhimanyux_platform target.py --provider claude
-python -m abhimanyux.platform.abhimanyux_platform target.py --provider gpt
-python -m abhimanyux.platform.abhimanyux_platform target.py --provider gemini
+python -m abhimanyux.runtime.abhimanyux_platform target.py --provider claude
+python -m abhimanyux.runtime.abhimanyux_platform target.py --provider gpt
+python -m abhimanyux.runtime.abhimanyux_platform target.py --provider gemini
 ```
 
 ### Python API
 
 ```python
-from abhimanyux.platform.abhimanyux_platform import AbhimanyuXPlatform, PlatformConfig
+from abhimanyux.runtime.abhimanyux_platform import AbhimanyuXPlatform, PlatformConfig
 
 # Auto-select best model for your hardware
 config = PlatformConfig(auto_select_model=True)
@@ -220,7 +220,7 @@ Create `abhimanyux_config.json`:
 ### Batch Scanning
 
 ```python
-from abhimanyux.platform.abhimanyux_platform import AbhimanyuXPlatform
+from abhimanyux.runtime.abhimanyux_platform import AbhimanyuXPlatform
 
 platform = AbhimanyuXPlatform()
 
@@ -237,7 +237,7 @@ for result in results:
 ```powershell
 # In your CI pipeline
 .\venv\Scripts\Activate.ps1
-python -m abhimanyux.platform.abhimanyux_platform --no-ai src/
+python -m abhimanyux.runtime.abhimanyux_platform --no-ai src/
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Security scan failed!"
     exit 1

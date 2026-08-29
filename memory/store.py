@@ -14,7 +14,7 @@ import hashlib
 import sqlite3
 from difflib import SequenceMatcher
 from typing import List, Dict, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from abhimanyux.models.schemas import (
@@ -173,7 +173,7 @@ class ImmuneMemoryStore:
                 UPDATE vulnerabilities 
                 SET last_seen = ?, occurrence_count = occurrence_count + 1
                 WHERE id = ?
-            ''', (datetime.utcnow().isoformat(), existing))
+            ''', (datetime.now(timezone.utc).isoformat(), existing))
             vuln_id = existing
         else:
             # Insert new vulnerability
@@ -193,8 +193,8 @@ class ImmuneMemoryStore:
                 vulnerability.location.function_name,
                 vulnerability.cwe_id,
                 vulnerability.confidence,
-                datetime.utcnow().isoformat(),
-                datetime.utcnow().isoformat()
+                datetime.now(timezone.utc).isoformat(),
+                datetime.now(timezone.utc).isoformat()
             ))
             vuln_id = vulnerability.id
         
@@ -340,7 +340,7 @@ class ImmuneMemoryStore:
             json.dumps(dna.preconditions),
             dna.capability_grant,
             json.dumps(dna.related_dna_ids),
-            datetime.utcnow().isoformat()
+            datetime.now(timezone.utc).isoformat()
         ))
 
         conn.commit()
@@ -384,7 +384,7 @@ class ImmuneMemoryStore:
             patch.patched_code,
             patch.explanation,
             patch.status.value,
-            datetime.utcnow().isoformat()
+            datetime.now(timezone.utc).isoformat()
         ))
         
         conn.commit()
@@ -408,7 +408,7 @@ class ImmuneMemoryStore:
             evidence.crash_output,
             evidence.sanitizer_output,
             evidence.success,
-            datetime.utcnow().isoformat()
+            datetime.now(timezone.utc).isoformat()
         ))
         
         record_id = cursor.lastrowid
@@ -433,7 +433,7 @@ class ImmuneMemoryStore:
             result.exploit_blocked,
             result.regression_pass,
             result.behavior_preserved,
-            datetime.utcnow().isoformat()
+            datetime.now(timezone.utc).isoformat()
         ))
         
         record_id = cursor.lastrowid
@@ -456,7 +456,7 @@ class ImmuneMemoryStore:
             vuln_id,
             patch_id,
             dna_id,
-            datetime.utcnow().isoformat()
+            datetime.now(timezone.utc).isoformat()
         ))
         
         record_id = cursor.lastrowid

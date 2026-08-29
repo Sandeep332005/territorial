@@ -128,7 +128,7 @@ echo @echo off
 echo cd /d "%INSTALL_DIR%"
 echo call venv\Scripts\activate.bat
 echo set PYTHONPATH=.
-echo python -m abhimanyux.platform.abhimanyux_platform %%*
+echo python -m abhimanyux.runtime.abhimanyux_platform %%*
 ) > "%USERPROFILE%\abhimanyux.bat"
 
 REM Add to PATH (user level)

@@ -378,6 +378,63 @@ class REWINDEngine:
 
         return vulnerabilities
 
+    def analyze_commit(self, repo_path: str, commit_sha: str = "HEAD") -> Dict:
+        """Real commit-diff analysis via `git show`/`git diff` (no simulation):
+        identifies changed files and flags a file as security-sensitive when
+        its diff removes a length/bounds `if` check or introduces a call to
+        an inherently unsafe function (memcpy/strcpy/strcat/sprintf/system/
+        popen/gets). Returns a structured summary plus the unified diff text
+        for the REWIND commit-analysis panel."""
+        import subprocess
+
+        def run_git(args: List[str]) -> str:
+            result = subprocess.run(
+                ["git", "-C", repo_path] + args,
+                capture_output=True, text=True, check=True
+            )
+            return result.stdout
+
+        commit_hash = run_git(["rev-parse", commit_sha]).strip()
+        subject = run_git(["log", "-1", "--format=%s", commit_hash]).strip()
+        author_date = run_git(["log", "-1", "--format=%ai", commit_hash]).strip()
+        changed_files = [f for f in run_git(
+            ["diff", "--name-only", f"{commit_hash}~1", commit_hash]
+        ).splitlines() if f]
+        full_diff = run_git(["diff", f"{commit_hash}~1", commit_hash])
+
+        bounds_removed_re = re.compile(r'^-\s*if\s*\(.*(<=|>=|<|>).*\)')
+        unsafe_added_re = re.compile(
+            r'^\+.*\b(memcpy|strcpy|strcat|sprintf|system|popen|gets)\s*\('
+        )
+
+        security_sensitive = []
+        reasons = set()
+        for f in changed_files:
+            file_diff = run_git(["diff", f"{commit_hash}~1", commit_hash, "--", f])
+            sensitive = False
+            for line in file_diff.splitlines():
+                if bounds_removed_re.match(line):
+                    sensitive = True
+                    reasons.add("Boundary validation changed")
+                if unsafe_added_re.match(line):
+                    sensitive = True
+                    reasons.add("Input handling modified")
+            if sensitive:
+                security_sensitive.append(f)
+
+        return {
+            "commit": commit_hash[:7],
+            "full_hash": commit_hash,
+            "subject": subject,
+            "author_date": author_date,
+            "files_changed": len(changed_files),
+            "changed_files": changed_files,
+            "security_sensitive_files": security_sensitive,
+            "risk": "HIGH" if security_sensitive else "LOW",
+            "reasons": sorted(reasons),
+            "diff": full_diff,
+        }
+
     def _pattern_scan(self, code: str, filename: str, patterns: List[Pattern]) -> List[Vulnerability]:
         """Scan code using regex patterns"""
         vulnerabilities = []
@@ -522,6 +579,7 @@ class REWINDEngine:
                 vulnerabilities.extend(self._check_null_deref(name, body_start, body, filename))
                 vulnerabilities.extend(self._check_integer_overflow(name, body_start, body, filename))
                 vulnerabilities.extend(self._check_path_traversal_fopen(name, body_start, body, filename))
+                vulnerabilities.extend(self._check_unchecked_memcpy(name, body_start, body, filename))
             vulnerabilities.extend(self._check_race_condition(code, filename))
         except Exception:
             # Heuristics are best-effort; malformed/unusual C source should not
@@ -679,6 +737,48 @@ class REWINDEngine:
                             source=AnalysisPhase.STATIC,
                         ))
                     break
+        return vulnerabilities
+
+    def _check_unchecked_memcpy(self, name: str, body_start: int, body: str, filename: str) -> List[Vulnerability]:
+        """Flags memcpy() calls whose length argument is a plain identifier
+        (so plausibly a caller-supplied value) with no preceding 'if' in the
+        same function body that compares that identifier against a bound.
+        Constant/sizeof-style lengths are not attacker-controlled and are
+        skipped, matching CWE-120 (buffer copy without checking input size)."""
+        vulnerabilities = []
+        lines = body.split('\n')
+        memcpy_re = re.compile(r'\bmemcpy\s*\(\s*[\w.\->\[\]]+\s*,\s*[\w.\->\[\]]+\s*,\s*(\w+)\s*\)')
+        for idx, line in enumerate(lines):
+            m = memcpy_re.search(line)
+            if not m:
+                continue
+            length_var = m.group(1)
+            if length_var.isupper() or length_var == 'sizeof':
+                continue
+            validated = any(
+                length_var in earlier and re.search(r'\bif\s*\(', earlier)
+                and re.search(r'(<=|>=|<|>|==)', earlier)
+                for earlier in lines[:idx]
+            )
+            if validated:
+                continue
+            vulnerabilities.append(Vulnerability(
+                id=hashlib.sha256(f"{filename}:{name}:memcpy:{idx}".encode()).hexdigest()[:16],
+                vuln_type=VulnType.BUFFER_OVERFLOW,
+                severity=Severity.CRITICAL,
+                title=f"Buffer Overflow - unchecked length passed to memcpy() in {name}()",
+                description=(
+                    f"'{length_var}' reaches memcpy() in {name}() with no preceding bounds "
+                    f"check against the destination buffer's capacity"
+                ),
+                location=VulnerabilityLocation(
+                    file_path=filename, line_start=body_start + idx,
+                    function_name=name, code_snippet=line.strip()
+                ),
+                cwe_id="CWE-120",
+                confidence=0.75,
+                source=AnalysisPhase.STATIC,
+            ))
         return vulnerabilities
 
     def _check_race_condition(self, code: str, filename: str) -> List[Vulnerability]:

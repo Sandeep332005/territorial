@@ -51,11 +51,11 @@ if errorlevel 1 (
 
 REM Test hardware detection
 echo [5/6] Testing hardware detection...
-python -c "from abhimanyux.platform.providers import ModelSelector; s=ModelSelector(); hw=s.hardware; print(f'  CPU: {hw.cpu_cores} cores'); print(f'  RAM: {hw.total_ram_gb:.1f} GB'); print(f'  GPU: {hw.gpu_name or \"None\"}'); print(f'  VRAM: {hw.gpu_vram_gb:.1f} GB')"
+python -c "from abhimanyux.runtime.providers import ModelSelector; s=ModelSelector(); hw=s.hardware; print(f'  CPU: {hw.cpu_cores} cores'); print(f'  RAM: {hw.total_ram_gb:.1f} GB'); print(f'  GPU: {hw.gpu_name or \"None\"}'); print(f'  VRAM: {hw.gpu_vram_gb:.1f} GB')"
 
 REM Test platform
 echo [6/6] Testing platform...
-python -c "from abhimanyux.platform.abhimanyux_platform import AbhimanyuXPlatform; p=AbhimanyuXPlatform(); print('  Platform initialized successfully')"
+python -c "from abhimanyux.runtime.abhimanyux_platform import AbhimanyuXPlatform; p=AbhimanyuXPlatform(); print('  Platform initialized successfully')"
 
 echo.
 echo ============================================================
@@ -81,9 +81,9 @@ echo     ollama pull qwen3:8b
 echo.
 echo Usage:
 echo   venv\Scripts\activate
-echo   python -m abhimanyux.platform.abhimanyux_platform target.py
-echo   python -m abhimanyux.platform.abhimanyux_platform --list-models
-echo   python -m abhimanyux.platform.abhimanyux_platform --list-hardware
+echo   python -m abhimanyux.runtime.abhimanyux_platform target.py
+echo   python -m abhimanyux.runtime.abhimanyux_platform --list-models
+echo   python -m abhimanyux.runtime.abhimanyux_platform --list-hardware
 echo.
 echo For API keys (optional - for frontier models):
 echo   set ANTHROPIC_API_KEY=your_key

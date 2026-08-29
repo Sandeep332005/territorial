@@ -289,7 +289,7 @@ case "$1" in
         fi
         detect_hardware
         cd "$SENTINELX_HOME"
-        PYTHONPATH=. $PYTHON -m abhimanyux.platform.abhimanyux_platform "$2"
+        PYTHONPATH=. $PYTHON -m abhimanyux.runtime.abhimanyux_platform "$2"
         ;;
     models)
         echo "Available models:"
