@@ -8,6 +8,8 @@
 
 *Recorded from a real, unmodified run of the live dashboard — real REWIND detection, real local-model (Qwen2.5-Coder 3B via Ollama) reasoning, real compile + exploit-replay verification in the Colima VM. No steps skipped or staged.*
 
+**[▶ Watch the full-length recording](docs/demo.mp4)** — same real mission, real time, 54 seconds, with chapter markers (Mission Control → REWIND → ANVIL → Verification Chamber → Verified).
+
 ---
 
 ## 🎯 Overview
