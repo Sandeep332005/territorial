@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<script>
+window.contextInfo = {"files":[],"materials":[],"crafts":[]};
+// 处理锚点链接跳转（srcDoc iframe 中锚点链接默认行为不正确）
+document.addEventListener('click', function(e) {
+  var anchor = e.target.closest('a');
+  if (anchor) {
+    var href = anchor.getAttribute('href');
+    if (href && href.startsWith('#')) {
+      e.preventDefault();
+      var targetId = href.slice(1);
+      var target = document.getElementById(targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }
+});
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABHIMANYU X — Mission Dossier // Autonomous Cyber-Reasoning &amp; Self-Repair System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#141416;
+  --bg2:#1c1c1e;
+  --text:#a0a5aa;
+  --muted:#6d7278;
+  --accent:#ff7235;
+  --panel-bd:rgba(255,114,53,0.25);
+  --line:rgba(160,165,170,0.18);
+  --green:#5fd068;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  --grotesk:'Space Grotesk',Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--text);font-family:var(--mono);}
+body{
+  line-height:1.5;
+  letter-spacing:.06em;
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+  position:relative;
+}
+/* global background scanline texture */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.5;
+  background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(255,255,255,0.012) 3px,rgba(255,255,255,0.012) 4px);
+}
+::selection{background:var(--accent);color:#141416;}
+a{color:inherit;text-decoration:none;}
+.wrap{max-width:1440px;margin:0 auto;padding:0 32px;position:relative;z-index:2;}
+
+/* ---------- TICKER ---------- */
+.tickerbar{
+  position:sticky;top:0;z-index:20;overflow:hidden;height:24px;
+  background:#111113;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;
+}
+.ticker{
+  display:inline-flex;white-space:nowrap;padding-left:100%;
+  animation:tick 40s linear infinite;font-size:12px;color:var(--muted);letter-spacing:.14em;
+}
+.ticker span{margin-right:48px;}
+.ticker b{color:var(--accent);font-weight:400;margin-right:8px;}
+@keyframes tick{from{transform:translateX(0);}to{transform:translateX(-100%);}}
+
+/* ---------- HEADER ---------- */
+.hdr{display:flex;align-items:center;gap:32px;padding:24px 0;flex-wrap:wrap;}
+.coord{font-size:12px;color:var(--muted);letter-spacing:.14em;line-height:1.8;white-space:nowrap;}
+.coord b{color:var(--accent);font-weight:400;}
+.logolock{display:flex;flex-direction:column;gap:4px;margin-right:auto;}
+.logolock .name{
+  font-family:var(--grotesk);font-weight:700;font-size:clamp(1.6rem,3vw,2.6rem);
+  letter-spacing:.02em;line-height:1;color:#e6e8ea;
+}
+.logolock .name em{font-style:normal;color:var(--accent);}
+.logolock .tag{font-size:12px;color:var(--muted);letter-spacing:.16em;}
+.statmeta{font-size:12px;color:var(--muted);letter-spacing:.1em;line-height:2;white-space:nowrap;text-align:right;}
+.statmeta .row b{color:#c9cdd1;font-weight:400;}
+.hdrright{display:flex;align-items:center;gap:16px;}
+.clockbox{font-size:20px;color:#e6e8ea;letter-spacing:.12em;font-weight:700;}
+.clockdate{font-size:12px;color:var(--muted);letter-spacing:.12em;text-align:right;}
+.sig{display:flex;align-items:flex-end;gap:3px;height:24px;}
+.sig i{width:4px;background:var(--accent);display:block;}
+.sig i:nth-child(1){height:6px;}
+.sig i:nth-child(2){height:10px;}
+.sig i:nth-child(3){height:14px;}
+.sig i:nth-child(4){height:18px;}
+.sig i:nth-child(5){height:22px;}
+.sig i.off{background:rgba(160,165,170,0.18);}
+
+/* ---------- STRIPE DIVIDER ---------- */
+.stripedivider{
+  height:26px;margin:0;
+  background:repeating-linear-gradient(45deg,#1c1c1e 0,#1c1c1e 6px,#212126 6px,#212126 12px);
+  animation:stripes 3.5s linear infinite;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+}
+@keyframes stripes{from{background-position:0 0;}to{background-position:17px 0;}}
+
+/* ---------- LAYOUT ---------- */
+.section{padding:40px 0 8px;}
+.sec-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+.sec-head .num{color:var(--accent);font-size:16px;font-weight:700;letter-spacing:.1em;}
+.sec-head h2{font-family:var(--grotesk);font-weight:700;font-size:clamp(1.4rem,2.6vw,2.2rem);line-height:1.05;letter-spacing:.01em;color:#e6e8ea;}
+.sec-head .chev{color:var(--accent);font-size:14px;}
+.sec-head .sub{font-size:12px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;width:100%;margin-top:4px;}
+.grid{display:grid;gap:24px;}
+.g2{grid-template-columns:1.5fr 1fr;}
+.g3{grid-template-columns:1fr 1fr 1fr;}
+.g6{grid-template-columns:1fr 1fr;}
+.gwrap{display:grid;gap:24px;}
+
+/* ---------- CYBER WINDOW PANEL ---------- */
+.cyber{
+  position:relative;border:1px solid var(--panel-bd);
+  background:rgba(255,255,255,0.016);
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+  display:flex;flex-direction:column;
+}
+.cyber::before,.cyber::after{content:"";position:absolute;width:0;height:0;border-style:solid;z-index:3;}
+.cyber::before{top:0;left:0;border-width:8px 8px 0 0;border-color:var(--accent) transparent transparent transparent;}
+.cyber::after{bottom:0;right:0;border-width:0 0 8px 8px;border-color:transparent transparent var(--accent) transparent;}
+.ptitlebar{
+  height:26px;flex:0 0 26px;border-bottom:1px solid var(--panel-bd);
+  display:flex;align-items:center;gap:8px;padding:0 12px;
+  font-size:12px;letter-spacing:.12em;color:#c9cdd1;text-transform:uppercase;
+  background:rgba(255,114,53,0.04);
+}
+.ptitlebar .dot{width:4px;height:4px;border-radius:50%;background:var(--green);flex:0 0 auto;}
+.ptitlebar .dot.pending{background:var(--accent);}
+.ptitlebar .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.ptitlebar .ic{color:var(--accent);font-size:12px;flex:0 0 auto;}
+.pbody{padding:16px;display:flex;flex-direction:column;gap:16px;flex:1;}
+.crt{position:relative;overflow:hidden;}
+.crt::after{
+  content:"";position:absolute;left:0;right:0;top:0;height:18%;pointer-events:none;z-index:2;
+  background:linear-gradient(180deg,rgba(255,114,53,0.05),transparent);
+  animation:sweep 4s linear infinite;
+}
+@keyframes sweep{0%{top:-18%;}100%{top:100%;}}
+
+/* ---------- TEXT ---------- */
+.mono-label{font-size:12px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;}
+.mono-label b{color:var(--accent);font-weight:400;}
+.prop{
+  font-family:var(--grotesk);font-weight:700;color:#e6e8ea;
+  font-size:clamp(1.5rem,2.8vw,2.5rem);line-height:1.05;letter-spacing:.01em;
+}
+.pitch{font-size:14px;line-height:1.6;color:var(--text);letter-spacing:.04em;}
+.accent{color:var(--accent);}
+.chain{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:13px;letter-spacing:.04em;}
+.chain .n{color:var(--accent);font-size:12px;font-weight:700;}
+.chain .chev{color:var(--accent);}
+.chain .term{background:rgba(255,255,255,0.03);border:1px solid var(--line);padding:4px 8px;font-size:12px;color:#c9cdd1;}
+.chain .term.pass{color:var(--green);}
+.chain .term.fail{color:var(--accent);}
+
+/* ---------- CTA ---------- */
+.cta-wrap{padding:32px 0 8px;}
+.cta{
+  display:inline-block;position:relative;padding:16px 40px;
+  font-family:var(--mono);font-weight:700;font-size:16px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);
+  background:repeating-linear-gradient(45deg,#232326 0,#232326 7px,#2a2a2e 7px,#2a2a2e 14px);
+  border:1px solid var(--panel-bd);cursor:pointer;text-align:center;
+}
+.cta .corner{position:absolute;width:10px;height:10px;border:2px solid var(--accent);}
+.cta .c-tl{top:-2px;left:-2px;border-right:none;border-bottom:none;}
+.cta .c-tr{top:-2px;right:-2px;border-left:none;border-bottom:none;}
+.cta .c-bl{bottom:-2px;left:-2px;border-right:none;border-top:none;}
+.cta .c-br{bottom:-2px;right:-2px;border-left:none;border-top:none;}
+.cta:hover{animation:convey .8s linear infinite;}
+@keyframes convey{from{background-position:0 0;}to{background-position:20px 0;}}
+.flowline{font-size:12px;color:var(--muted);letter-spacing:.12em;margin-top:16px;text-transform:uppercase;}
+.flowline b{color:var(--accent);font-weight:400;}
+
+/* ---------- STAGES ---------- */
+.stage{padding:8px;}
+.stage .snum{color:var(--accent);font-weight:700;font-size:14px;letter-spacing:.1em;}
+.stage .sname{font-family:var(--grotesk);font-weight:700;font-size:18px;color:#e6e8ea;line-height:1.1;margin-bottom:12px;}
+.stage .sname small{font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:400;display:block;margin-top:4px;}
+.stage ul{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.stage li{font-size:13px;line-height:1.55;color:var(--text);letter-spacing:.03em;padding-left:16px;position:relative;}
+.stage li::before{content:"▸";position:absolute;left:0;color:var(--accent);}
+.stage li b{color:#c9cdd1;font-weight:400;}
+.stage .code{font-size:12px;color:var(--accent);letter-spacing:.04em;background:rgba(255,255,255,0.03);border:1px solid var(--line);padding:2px 6px;}
+.kv{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:12px;color:var(--muted);letter-spacing:.08em;}
+.kv b{color:#c9cdd1;font-weight:400;}
+.tag-row{display:flex;flex-wrap:wrap;gap:8px;}
+.tag{font-size:11px;letter-spacing:.1em;padding:2px 8px;border:1px solid var(--line);color:var(--muted);text-transform:uppercase;}
+.tag.ok{color:var(--green);border-color:rgba(95,208,104,0.35);}
+.tag.warn{color:var(--accent);border-color:var(--panel-bd);}
+
+/* ---------- ARCHITECTURE PLANES ---------- */
+.planes{display:flex;flex-direction:column;gap:12px;}
+.plane{display:flex;align-items:center;gap:16px;border:1px solid var(--panel-bd);padding:12px 16px;background:rgba(255,255,255,0.015);position:relative;}
+.plane .pl{font-family:var(--grotesk);font-weight:700;color:#e6e8ea;font-size:15px;white-space:nowrap;letter-spacing:.03em;flex:0 0 220px;}
+.plane .pl em{font-style:normal;color:var(--accent);}
+.plane .pv{font-size:12px;color:var(--text);letter-spacing:.06em;line-height:1.7;flex:1;}
+
+/* ---------- DIVIDER / HUD ---------- */
+.dd{display:flex;align-items:center;gap:16px;margin:8px 0;}
+.dd::before,.dd::after{content:"";flex:1;height:1px;background:var(--line);}
+.dd .dmd{width:8px;height:8px;background:var(--accent);transform:rotate(45deg);}
+.dd span{font-size:12px;color:var(--muted);letter-spacing:.14em;}
+
+/* page corner brackets */
+.cb{position:fixed;width:22px;height:22px;border:2px solid rgba(160,165,170,0.28);z-index:30;pointer-events:none;}
+.cb-tl{top:8px;left:8px;border-right:none;border-bottom:none;}
+.cb-tr{top:8px;right:8px;border-left:none;border-bottom:none;}
+.cb-bl{bottom:8px;left:8px;border-right:none;border-top:none;}
+.cb-br{bottom:8px;right:8px;border-left:none;border-top:none;}
+
+/* crosshair reticles */
+.reticle{position:fixed;width:16px;height:16px;pointer-events:none;z-index:29;opacity:.7;}
+.reticle::before{content:"";position:absolute;inset:0;border:1px solid rgba(200,204,208,0.5);border-radius:50%;}
+.reticle::after{content:"";position:absolute;inset:50% -4px;height:1px;background:rgba(200,204,208,0.5);}
+.reticle i{position:absolute;left:50%;top:-4px;width:1px;height:4px;background:rgba(200,204,208,0.5);}
+.r1{top:120px;left:24px;}
+.r2{top:260px;right:24px;}
+.r3{bottom:40px;left:32%;}
+
+/* vertical edge text */
+.vtext{position:fixed;font-size:12px;color:var(--muted);letter-spacing:.2em;z-index:29;pointer-events:none;text-transform:uppercase;}
+.vt-left{left:4px;top:50%;transform:rotate(180deg);writing-mode:vertical-rl;}
+.vt-right{right:4px;top:50%;writing-mode:vertical-rl;}
+.vtext b{color:var(--accent);font-weight:400;}
+
+/* edge coordinate readouts */
+.ecoord{position:fixed;font-size:12px;color:var(--muted);letter-spacing:.14em;z-index:29;pointer-events:none;}
+.ec-tl{top:8px;left:48px;}
+.ec-tr{top:8px;right:48px;}
+.ec-bl{bottom:8px;left:48px;}
+.ec-br{bottom:8px;right:48px;}
+
+/* mini terminals */
+.miniterm{
+  width:190px;height:48px;border:1px solid var(--panel-bd);background:#0e0e10;
+  overflow:hidden;position:relative;display:flex;align-items:center;
+}
+.miniterm .scrl{position:absolute;left:8px;right:8px;top:0;white-space:nowrap;font-size:11px;color:var(--accent);letter-spacing:.08em;
+  animation:mtick 6s linear infinite;}
+@keyframes mtick{from{transform:translateY(0);}to{transform:translateY(-16px);}}
+.miniterm .cap{position:absolute;bottom:2px;left:8px;font-size:10px;color:var(--muted);letter-spacing:.12em;}
+
+/* icon row */
+.iconrow{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;}
+.iconunit{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.iconunit svg{width:20px;height:20px;stroke:var(--accent);fill:none;stroke-width:1.6;}
+.iconunit .lbl{font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;}
+
+/* arc gauge */
+.gauge{position:relative;width:120px;height:68px;}
+.gauge svg{width:120px;height:68px;overflow:visible;}
+.gauge .track{stroke:rgba(160,165,170,0.18);fill:none;stroke-width:7;}
+.gauge .arc{stroke:var(--accent);fill:none;stroke-width:7;stroke-linecap:butt;
+  stroke-dasharray:94.2;stroke-dashoffset:94.2;transition:stroke-dashoffset 1.4s ease;}
+.gauge .glabel{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:11px;color:var(--muted);letter-spacing:.12em;}
+.gauge .gval{position:absolute;top:14px;left:0;right:0;text-align:center;font-size:16px;color:#e6e8ea;font-weight:700;}
+
+/* connector dashed line */
+.conn{height:1px;border-top:1px dashed rgba(255,114,53,0.35);background-image:linear-gradient(90deg,rgba(255,114,53,0.4) 6px,transparent 6px);background-size:12px 1px;animation:dashmove 1.2s linear infinite;}
+@keyframes dashmove{from{background-position:0 0;}to{background-position:12px 0;}}
+
+/* form */
+.form{display:flex;flex-direction:column;gap:20px;}
+.formsteps{font-size:12px;color:var(--muted);letter-spacing:.12em;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.formsteps b{color:var(--accent);font-weight:700;}
+.formsteps .chev{color:var(--accent);}
+.fgroup{display:flex;flex-direction:column;gap:8px;padding:8px 0;}
+.fgroup label{font-size:14px;letter-spacing:.14em;color:var(--text);text-transform:uppercase;transition:color .18s ease;cursor:pointer;}
+.fgroup .field{border-bottom:1px solid rgba(160,165,170,0.35);transition:border-color .18s ease;position:relative;}
+.fgroup .field:hover{border-bottom-color:var(--accent);}
+.fgroup:hover label{color:#e6e8ea;}
+.fgroup input,.fgroup select{background:transparent;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:14px;letter-spacing:.06em;width:100%;padding:8px 0;text-transform:uppercase;}
+.fgroup select option{background:#1c1c1e;color:var(--text);}
+.radio-opts{display:flex;flex-wrap:wrap;gap:16px;}
+.radio-opts label{font-size:13px;color:var(--text);letter-spacing:.08em;display:flex;align-items:center;gap:8px;cursor:pointer;}
+.radio-opts input{accent-color:var(--accent);}
+.bracket{font-family:var(--mono);}
+.bracket .bx{color:var(--accent);}
+.cta.submit{margin-top:8px;}
+.submitline{font-size:12px;color:var(--muted);letter-spacing:.12em;margin-top:12px;text-transform:uppercase;}
+.submitline b{color:var(--accent);font-weight:400;}
+
+/* footer */
+footer{border-top:1px solid var(--line);margin-top:40px;}
+.foot{padding:24px 0 48px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);letter-spacing:.12em;}
+.foot b{color:#c9cdd1;font-weight:400;}
+
+/* HERO canvas */
+.canvasbox{position:relative;width:100%;min-height:440px;flex:1;}
+.canvasbox canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none;}
+.canvasbox canvas.dragging{cursor:grabbing;}
+.scanline{position:absolute;left:0;right:0;height:100%;pointer-events:none;z-index:2;overflow:hidden;}
+.scanline::after{content:"";position:absolute;left:0;right:0;top:0;height:14%;
+  background:linear-gradient(180deg,rgba(255,114,53,0.05),transparent);animation:sweep 4s linear infinite;}
+.engine-tag{position:absolute;bottom:8px;left:12px;z-index:3;font-size:12px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;}
+
+/* hero side */
+.hero-side{display:flex;flex-direction:column;gap:24px;}
+.timerbox{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.timerbox .lbl{font-size:12px;color:var(--muted);letter-spacing:.14em;}
+.timerbox .val{font-size:22px;color:var(--accent);font-weight:700;letter-spacing:.1em;}
+
+/* life nodes */
+.life{display:flex;flex-direction:column;gap:10px;font-size:13px;}
+.life .node{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.life .dot{width:6px;height:6px;background:var(--accent);flex:0 0 auto;}
+.life .chev{color:var(--accent);}
+
+/* TRUST boundary */
+.trust{display:flex;align-items:stretch;gap:12px;flex-wrap:wrap;}
+.trust .tb{flex:1;min-width:180px;border:1px solid var(--panel-bd);padding:12px;display:flex;flex-direction:column;gap:8px;}
+.trust .tb .tt{font-family:var(--grotesk);font-weight:700;color:#e6e8ea;font-size:14px;}
+.trust .tb .ts{font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
+.trust .tb .tst{font-size:12px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;font-weight:700;}
+.trust .arrow{align-self:center;color:var(--accent);font-size:16px;}
+
+/* novelty */
+.novels{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+.novel{border:1px solid var(--panel-bd);background:rgba(255,255,255,0.016);padding:16px;position:relative;display:flex;flex-direction:column;gap:10px;}
+.novel .nn{color:var(--accent);font-weight:700;font-size:13px;letter-spacing:.1em;}
+.novel .nt{font-family:var(--grotesk);font-weight:700;color:#e6e8ea;font-size:16px;line-height:1.1;}
+.novel p{font-size:13px;line-height:1.55;color:var(--text);letter-spacing:.03em;}
+.novel p b{color:#c9cdd1;font-weight:400;}
+
+.taxo{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+.taxo .tx{border:1px solid var(--panel-bd);padding:12px;display:flex;flex-direction:column;gap:6px;}
+.taxo .tx .tk{font-family:var(--grotesk);font-weight:700;color:var(--accent);font-size:14px;}
+.taxo .tx .tv{font-size:12px;color:var(--text);line-height:1.5;letter-spacing:.05em;}
+
+.cli{font-family:var(--mono);font-size:13px;color:var(--text);letter-spacing:.04em;display:flex;flex-direction:column;gap:10px;}
+.cli .step{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.cli .cmd{color:var(--accent);}
+.cli .chev{color:var(--accent);}
+
+/* responsive */
+@media(max-width:768px){
+  .wrap{padding:0 20px;}
+  .g2,.g3,.novels,.taxo,.g6{grid-template-columns:1fr;}
+  .hdr{gap:16px;align-items:flex-start;}
+  .statmeta{text-align:left;}
+  .logolock .name{font-size:clamp(1.5rem,8vw,2.5rem);}
+  .cb,.reticle,.vtext,.ecoord,.gauge,.miniterm,.conn,.sig{display:none;}
+  .canvasbox{min-height:300px;}
+  .plane{flex-direction:column;align-items:flex-start;gap:8px;}
+  .plane .pl{flex:0 0 auto;}
+  footer .foot{flex-direction:column;}
+  .section{padding:32px 0 4px;}
+  .trust .arrow{transform:rotate(90deg);}
+}
+</style>
+</head>
+<body>
+
+<!-- HUD layer -->
+<div class="cb cb-tl"></div><div class="cb cb-tr"></div><div class="cb cb-bl"></div><div class="cb cb-br"></div>
+<div class="reticle r1"><i></i></div><div class="reticle r2"><i></i></div><div class="reticle r3"><i></i></div>
+<div class="vtext vt-left">SYSTEM_ID // STATUS: NOMINAL <b>// ABX-2026-Q3</b></div>
+<div class="vtext vt-right"><b>SECTOR 7-G</b> // GRID: X-042 / Y-118 // ONLINE</div>
+<div class="ecoord ec-tl">GRID: X-042 / Y-118</div>
+<div class="ecoord ec-tr">INT: ABX / Q3 / BATCH 2026</div>
+<div class="ecoord ec-bl">MISSION ID: ABX-2026-Q3</div>
+<div class="ecoord ec-br">REV: v2.4.1 / EVIDENCE</div>
+
+<!-- TICKER -->
+<div class="tickerbar"><div class="ticker">
+  <span><b>PROGRAM:</b> AI KAVACH CHALLENGE</span>
+  <span><b>SYSTEM:</b> ABHIMANYU X</span>
+  <span><b>STATUS:</b> ONLINE</span>
+  <span><b>MODE:</b> AUTONOMOUS CYBER-REASONING</span>
+  <span><b>INTAKE BATCH:</b> 2026-Q3</span>
+  <span><b>RENDERER:</b> CANVAS-2D</span>
+  <span><b>VERIFY GATES:</b> 7/7</span>
+  <span><b>MISSION ID:</b> ABX-2026-Q3</span>
+  <span><b>PROGRAM:</b> AI KAVACH CHALLENGE</span>
+  <span><b>SYSTEM:</b> ABHIMANYU X</span>
+  <span><b>STATUS:</b> ONLINE</span>
+  <span><b>MODE:</b> AUTONOMOUS CYBER-REASONING</span>
+  <span><b>INTAKE BATCH:</b> 2026-Q3</span>
+  <span><b>RENDERER:</b> CANVAS-2D</span>
+  <span><b>VERIFY GATES:</b> 7/7</span>
+  <span><b>TICKER LOOP</b></span>
+</div></div>
+
+<!-- HEADER -->
+<header class="wrap hdr">
+  <div class="coord">GRID: X-042 / Y-118<br>LAT 19.07 / LON 72.87<br>ALT 0.0 M</div>
+  <div class="logolock">
+    <div class="name">ABHIMANYU <em>X</em></div>
+    <div class="tag">AUTONOMOUS CYBER-REASONING &amp; SELF-REPAIR SYSTEM</div>
+  </div>
+  <div class="statmeta">
+    <div class="row">SQUAD: <b>CYBER-REASONING</b></div>
+    <div class="row">LOCATION: <b>LOCAL-LAB</b></div>
+    <div class="row">FIELD-STATUS: <b>NOMINAL</b></div>
+  </div>
+  <div class="hdrright">
+    <div>
+      <div class="clockbox" id="clock">00:00:00</div>
+      <div class="clockdate" id="clockdate">—</div>
+    </div>
+    <div class="sig" aria-label="signal strength">
+      <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="off"></i>
+    </div>
+  </div>
+</header>
+
+<!-- STRIPE DIVIDER -->
+<div class="stripedivider" aria-hidden="true"></div>
+
+<main class="wrap">
+
+  <!-- SECTION A: HERO + CORE PROPOSITION -->
+  <section class="section" id="hero">
+    <div class="grid g2">
+      <div class="cyber crt">
+        <div class="ptitlebar"><span class="dot"></span><span class="t">// SECTOR 7-G / TERRAIN MODEL / HOLOGRAPHIC RENDER</span><span class="ic">▦</span></div>
+        <div class="pbody" style="padding:0;">
+          <div class="canvasbox" id="canvasbox">
+            <canvas id="drone"></canvas>
+            <div class="scanline"></div>
+            <div class="engine-tag">// 3D ENGINE: ONLINE // RENDERER: CANVAS-2D</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-side">
+        <div class="mono-label"><b>01 //</b> MISSION BRIEF</div>
+        <div class="prop">AI proposes →<br>Evidence decides →<br>Verification proves →<br>Memory learns.</div>
+        <p class="pitch">Build a cyber-reasoning system — an LLM laced with fuzzers, static and dynamic analysis, and a regression test harness — that autonomously finds a vulnerability, patches it, and proves the fix holds.</p>
+
+        <div class="mono-label"><b>//</b> SECURITY LIFECYCLE</div>
+        <div class="life">
+          <div class="node"><span class="dot"></span> DISCOVER <span class="chev">→</span> (Static/Fuzz)</div>
+          <div class="node"><span class="dot"></span> UNDERSTAND <span class="chev">→</span> (Evidence + ANVIL/LLM)</div>
+          <div class="node"><span class="dot"></span> REPAIR <span class="chev">→</span> (AI Patch)</div>
+          <div class="node"><span class="dot"></span> VERIFY <span class="chev">→</span> (7 Gate Proof)</div>
+          <div class="node"><span class="chev">»</span> PASS? <span class="chev">»</span> YES: <span class="term pass">REMEMBER (Immune Memory)</span> <span class="chev">→</span> <span class="term pass">TRANSFER (Target B)</span></div>
+          <div class="node"><span class="chev">»</span> NO: <span class="term fail">ANVIL (Retry with evidence)</span></div>
+        </div>
+
+        <div class="timerbox">
+          <span class="lbl">MISSION TIMER</span>
+          <span class="val" id="missiontimer">00:00:00</span>
+        </div>
+
+        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="gauge" data-gauge="78">
+            <svg viewBox="0 0 120 68"><path class="track" d="M10 60 A50 50 0 0 1 110 60"/><path class="arc" d="M10 60 A50 50 0 0 1 110 60"/></svg>
+            <div class="gval">78%</div><div class="glabel">SYS_LOAD</div>
+          </div>
+          <div class="gauge" data-gauge="100">
+            <svg viewBox="0 0 120 68"><path class="track" d="M10 60 A50 50 0 0 1 110 60"/><path class="arc" d="M10 60 A50 50 0 0 1 110 60"/></svg>
+            <div class="gval">7/7</div><div class="glabel">VERIFY GATES</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION B: CTA -->
+  <section class="cta-wrap">
+    <button class="cta" id="ctaInit">
+      <span class="corner c-tl"></span><span class="corner c-tr"></span>
+      <span class="corner c-bl"></span><span class="corner c-br"></span>
+      INITIATE MISSION
+    </button>
+    <div class="flowline">SUBMIT → MISSION QUEUED → DISCOVER → EVIDENCE → VERIFY → IMMUNE MEMORY</div>
+    <div class="flowline" style="color:var(--text);"><b>ABHIMANYU X IS NOT AN AI CODE GENERATOR</b> — IT IS AN EVIDENCE-DRIVEN AUTONOMOUS REPAIR LOOP.</div>
+    <div class="dd" style="margin-top:32px;"><span>01 // SECTOR 7-G</span><div class="dmd"></div><span>STATUS: NOMINAL</span></div>
+  </section>
+
+  <!-- SECTION C: WHAT MAKES THE SYSTEM DIFFERENT -->
+  <section class="section" id="different">
+    <div class="sec-head">
+      <span class="num">02 //</span>
+      <span class="chev">&gt;&gt;&gt;</span>
+      <h2>WHAT MAKES THE SYSTEM DIFFERENT</h2>
+    </div>
+    <div class="grid g2">
+      <div class="cyber crt">
+        <div class="ptitlebar"><span class="dot pending"></span><span class="t">// TRADITIONAL PIPELINE</span><span class="ic">×</span></div>
+        <div class="pbody">
+          <div class="chain"><span class="n">01</span><span class="term">FIND</span><span class="chev">&gt;&gt;&gt;</span><span class="n">02</span><span class="term">ALERT</span><span class="chev">&gt;&gt;&gt;</span><span class="n">03</span><span class="term">HUMAN</span><span class="chev">&gt;&gt;&gt;</span><span class="n">04</span><span class="term">PATCH</span><span class="chev">&gt;&gt;&gt;</span><span class="n">05</span><span class="term">TEST</span></div>
+          <div class="conn"></div>
+          <div class="mono-label">HUMAN-IN-THE-LOOP / REPORT-ONLY</div>
+        </div>
+      </div>
+      <div class="cyber crt">
+        <div class="ptitlebar"><span class="dot"></span><span class="t">// ABHIMANYU X PIPELINE</span><span class="ic">▦</span></div>
+        <div class="pbody">
+          <div class="chain"><span class="n">01</span><span class="term">FIND</span><span class="chev">&gt;&gt;&gt;</span><span class="n">02</span><span class="term">REPRODUCE</span><span class="chev">&gt;&gt;&gt;</span><span class="n">03</span><span class="term">COLLECT EVIDENCE</span><span class="chev">&gt;&gt;&gt;</span><span class="n">04</span><span class="term">REASON</span></div>
+          <div class="chain"><span class="n">05</span><span class="term">GENERATE PATCH</span><span class="chev">&gt;&gt;&gt;</span><span class="n">06</span><span class="term">ATTACK THE PATCH</span><span class="chev">&gt;&gt;&gt;</span><span class="n">07</span><span class="term">REGRESSION</span></div>
+          <div class="chain"><span class="n">08</span><span class="term">BEHAVIOUR VALIDATION</span><span class="chev">&gt;&gt;&gt;</span><span class="n">09</span><span class="term">VERIFY</span><span class="chev">&gt;&gt;&gt;</span><span class="n">10</span><span class="term">REMEMBER</span><span class="chev">&gt;&gt;&gt;</span><span class="n">11</span><span class="term">TRANSFER KNOWLEDGE</span></div>
+          <div class="conn"></div>
+          <div class="mono-label">EVIDENCE-DRIVEN / AUTONOMOUS / CLOSED-LOOP</div>
+        </div>
+      </div>
+    </div>
+    <div class="dd" style="margin-top:32px;"><span>02 // SECTOR 7-G</span><div class="dmd"></div><span>FIELD-STATUS: NOMINAL</span></div>
+  </section>
+
+  <!-- SECTION D: METHODOLOGY -->
+  <section class="section" id="methodology">
+    <div class="sec-head">
+      <span class="num">03 //</span>
+      <span class="chev">&gt;&gt;&gt;</span>
+      <h2>METHODOLOGY / OPERATIONAL WORKFLOW</h2>
+      <div class="sub">From Vulnerability Discovery to Verified Immune Memory</div>
+    </div>
+
+    <div class="grid g6">
+      <div class="cyber crt"><div class="ptitlebar"><span class="dot"></span><span class="t">01 INGEST</span><span class="ic">▦</span></div><div class="pbody"><div class="stage">
+        <div class="snum">01 INGEST</div>
+        <div class="sname">REPOSITORY INTAKE <small>INPUT → GIT REPOSITORY</small></div>
+        <ul>
+          <li>Input: <b>Git Repository</b></li>
+          <li>Source Code, Build System, Dependencies, Git History, Test Harness</li>
+          <li>Example: <span class="code">secure_packet_parser</span></li>
+          <li>Language: <b>C</b> &nbsp;/&nbsp; Build: <b>CMake</b></li>
+          <li>Security Profile: <b>Memory Safety</b></li>
+        </ul>
+        <div class="conn"></div>
+        <div class="mono-label"><b>//</b> WHY GIT HISTORY MATTERS</div>
+        <p style="font-size:13px;line-height:1.6;">ABHIMANYU X compares <b class="accent">SAFE BASELINE → COMMIT → VULNERABLE VERSION</b> using: <span class="code">git diff HEAD~1 HEAD</span>. This allows the system to identify security-sensitive changes rather than blindly scanning the entire repository.</p>
+      </div></div></div>
+
+      <div class="cyber crt"><div class="ptitlebar"><span class="dot"></span><span class="t">02 REWIND</span><span class="ic">×</span></div><div class="pbody"><div class="stage">
+        <div class="snum">02 REWIND</div>
+        <div class="sname">SECURITY-SENSITIVE CHANGE DETECTION <small>REWIND ANALYZES</small></div>
+        <ul>
+          <li>Git Diff + Source Structure + Security Heuristics + AST / Static Signals</li>
+          <li>Example: <span class="code">parser.c</span> - <span class="code">safe_parse(...)</span> + <span class="code">parse_packet(...)</span> → length used without boundary validation</li>
+        </ul>
+        <div class="mono-label"><b>//</b> OUTPUT</div>
+        <div class="tag-row">
+          <span class="tag warn">FINDING: POTENTIAL BUFFER OVERFLOW</span>
+          <span class="tag warn">LOCATION: parser.c:142</span>
+          <span class="tag warn">CWE: CWE-120</span>
+          <span class="tag">CONFIDENCE: EVIDENCE-BACKED CANDIDATE</span>
+        </div>
+        <div class="conn"></div>
+        <p style="font-size:13px;line-height:1.6;color:var(--muted);">Important distinction: REWIND does not declare "This is definitely exploitable." It creates a candidate that dynamic analysis must prove.</p>
+      </div></div></div>
+
+      <div class="cyber crt"><div class="ptitlebar"><span class="dot"></span><span class="t">03 DYNAMIC ANALYSIS + FUZZING</span><span class="ic">▦</span></div><div class="pbody"><div class="stage">
+        <div class="snum">03 DYNAMIC ANALYSIS + FUZZING</div>
+        <div class="sname">TARGET → INSTRUMENTATION + HARNESS → AFL++ <small>COVERAGE + CRASH → ASAN</small></div>
+        <div class="mono-label"><b>//</b> ENVIRONMENT</div>
+        <div class="kv">
+          <span>VM: <b>Colima Linux</b></span><span>OS: <b>Ubuntu 24.04 ARM64</b></span><span>CPU: <b>2 vCPU</b></span><span>RAM: <b>4 GB</b></span><span>Docker</span><span>Clang</span><span>AddressSanitizer</span><span>AFL++</span>
+        </div>
+        <div class="conn"></div>
+        <div class="mono-label"><b>//</b> FUZZING TELEMETRY</div>
+        <div class="tag-row">
+          <span class="tag">EXECUTIONS</span><span class="tag">EXEC/SEC</span><span class="tag">COVERAGE</span><span class="tag">CORPUS</span><span class="tag">UNIQUE PATHS</span><span class="tag">CRASHES</span><span class="tag">STABILITY</span>
+        </div>
+      </div></div></div>
+
+      <div class="cyber crt"><div class="ptitlebar"><span class="dot"></span><span class="t">04 CRASH TRIAGE</span><span class="ic">×</span></div><div class="pbody"><div class="stage">
+        <div class="snum">04 CRASH TRIAGE</div>
+        <div class="sname">CRASH → REPRODUCE → DEDUPLICATE <small>SANITIZER ANALYSIS → STACK → EVIDENCE</small></div>
+        <div class="kv">
+          <span>CRASH: <b class="accent">CRASH-00017</b></span><span>SIGNAL: <b>SIGABRT</b></span><span>SANITIZER: <b>AddressSanitizer</b></span><span>TYPE: <b>heap-buffer-overflow</b></span>
+          <span>LOCATION: <b>parser.c:142</b></span><span>REPRODUCIBLE: <b>YES</b></span><span>UNIQUE: <b>YES</b></span>
+        </div>
+        <div class="tag-row"><span class="tag warn">CRASH-00017</span><span class="tag">REPRODUCIBLE</span><span class="tag ok">UNIQUE</span></div>
+      </div></div></div>
+
+      <div class="cyber crt"><div class="ptitlebar"><span class="dot"></span><span class="t">05 EVIDENCE BUNDLE</span><span class="ic">▦</span></div><div class="pbody"><div class="stage">
+        <div class="snum">05 EVIDENCE BUNDLE</div>
+        <div class="sname">STRUCTURED SECURITY EVIDENCE <small>TO THE LLM</small></div>
+        <div class="chain"><span class="term">GIT DIFF</span><span class="chev">&gt;&gt;&gt;</span><span class="term">STATIC FINDING</span><span class="chev">&gt;&gt;&gt;</span><span class="term">CRASH</span><span class="chev">&gt;&gt;&gt;</span><span class="term">SOURCE LINES</span><span class="chev">&gt;&gt;&gt;</span><span class="term">CWE DATA</span><span class="chev">&gt;&gt;&gt;</span><span class="term">ASAN</span></div>
+        <div class="chain"><span class="chev">»</span> STACK TRACE <span class="chev">»</span> REPRODUCTION <span class="chev">»</span> <span class="term fail">ANVIL</span></div>
+        <p style="font-size:13px;color:var(--muted);">The LLM receives structured security evidence.</p>
+      </div></div></div>
+
+      <div class="cyber crt"><div class="ptitlebar"><span class="dot pending"></span><span class="t">06 ANVIL AI SECURITY REASONING</span><span class="ic">×</span></div><div class="pbody"><div class="stage">
+        <div class="snum">06 ANVIL AI SECURITY REASONING</div>
+        <div class="sname">LOCAL AI REASONING <small>EVIDENCE → ANVIL → OLLAMA → QWEN2.5-CODER 3B</small></div>
+        <ul>
+          <li>ANVIL produces: <b>ROOT CAUSE</b>, <b>TRIGGER CONDITION</b>, <b>SECURITY IMPACT</b>, <b>REPAIR STRATEGY</b>, <b>PATCH CONSTRAINTS</b></li>
+        </ul>
+        <div class="conn"></div>
+        <p style="font-size:13px;line-height:1.6;"><b class="accent">EXAMPLE:</b> Root Cause: Untrusted packet length is passed to a fixed-size destination without bounds validation. Trigger: Input length &gt; destination capacity. Repair Strategy: Validate length before memory copy. Patch Constraint: Preserve existing API and packet structure.</p>
+        <div class="tag-row"><span class="tag warn">AI-GENERATED NOT VERIFIED</span></div>
+        <p style="font-size:13px;color:var(--muted);">Critical security principle: The LLM output is <b class="accent">AI-GENERATED NOT VERIFIED</b>.</p>
+      </div></div></div>
+
+      <div class="cyber crt"><div class="ptitlebar"><span class="dot pending"></span><span class="t">07 PATCH GENERATION</span><span class="ic">▦</span></div><div class="pbody"><div class="stage">
+        <div class="snum">07 PATCH GENERATION</div>
+        <div class="sname">MINIMAL PATCH BY ANVIL <small>AI-GENERATED NOT TRUSTED</small></div>
+        <div style="font-family:var(--mono);font-size:12px;color:#c9cdd1;background:#0e0e10;border:1px solid var(--line);padding:10px;line-height:1.7;letter-spacing:.02em;">
+          - memcpy(dst, src, packet_len);<br>
+          + if (packet_len &gt; sizeof(dst))<br>
+          +&nbsp;&nbsp;&nbsp;&nbsp;return ERROR_INVALID_LENGTH;<br>
+          + memcpy(dst, src, packet_len);
+        </div>
+        <div class="conn"></div>
+        <div class="kv">
+          <span>PATCH ATTEMPT: <b class="accent">#1</b></span><span>FILES CHANGED: <b>1</b></span><span>LINES ADDED: <b>3</b></span><span>LINES REMOVED: <b>1</b></span>
+        </div>
+        <div class="tag-row"><span class="tag warn">AI-GENERATED NOT TRUSTED</span></div>
+      </div></div></div>
+
+      <div class="cyber crt"><div class="ptitlebar"><span class="dot"></span><span class="t">08 VERIFICATION CHAMBER</span><span class="ic">×</span></div><div class="pbody"><div class="stage">
+        <div class="snum">08 VERIFICATION CHAMBER</div>
+        <div class="sname">SEVEN INDEPENDENT GATES</div>
+        <div class="tag-row">
+          <span class="tag ok">BUILD ✓</span><span class="tag ok">EXPLOIT REPLAY ✓</span><span class="tag ok">REGRESSION ✓</span><span class="tag ok">BEHAVIOUR ✓</span><span class="tag ok">ADVERSARIAL ✓</span><span class="tag ok">ASAN ✓</span><span class="tag ok">UBSAN ✓</span>
+        </div>
+        <div class="chain"><span class="term pass">7 / 7</span><span class="chev">→</span><span class="term pass">VERIFIED</span></div>
+        <div class="conn"></div>
+        <p style="font-size:13px;line-height:1.6;">The crucial point: Verification is independent of the LLM. ANVIL cannot say "My patch is correct." Only the verification engine can establish that the defined gates passed.</p>
+      </div></div></div>
+
+      <div class="cyber crt"><div class="ptitlebar"><span class="dot pending"></span><span class="t">09 FAIL → REASON → REPAIR</span><span class="ic">▦</span></div><div class="pbody"><div class="stage">
+        <div class="snum">09 FAIL → REASON → REPAIR</div>
+        <div class="sname">BOUNDED RETRY LOOP <small>MAX PATCH ATTEMPTS = 2</small></div>
+        <p style="font-size:13px;">Suppose Build ✓, Exploit Replay ✓, Regression ✕, ASan ✓. Then:</p>
+        <div class="chain"><span class="term fail">PATCH REJECTED</span><span class="chev">&gt;&gt;&gt;</span><span class="term">FAILURE EVIDENCE</span><span class="chev">&gt;&gt;&gt;</span><span class="term fail">ANVIL</span><span class="chev">&gt;&gt;&gt;</span><span class="term">REPAIR STRATEGY #2</span><span class="chev">&gt;&gt;&gt;</span><span class="term">PATCH #2</span><span class="chev">&gt;&gt;&gt;</span><span class="term fail">VERIFY AGAIN</span></div>
+        <div class="conn"></div>
+        <p style="font-size:13px;color:var(--muted);">Limit: <b class="accent">MAX PATCH ATTEMPTS = 2</b>. If both fail: <b class="accent">MISSION HALTED, NO VERIFIED PATCH, HUMAN REVIEW REQUIRED</b>. That is much safer than an unrestricted autonomous loop.</p>
+      </div></div></div>
+
+      <div class="cyber crt"><div class="ptitlebar"><span class="dot"></span><span class="t">10 IMMUNE MEMORY</span><span class="ic">×</span></div><div class="pbody"><div class="stage">
+        <div class="snum">10 IMMUNE MEMORY</div>
+        <div class="sname">ONLY AFTER VERIFICATION <small>7/7 PASSED → IMMUNE MEMORY</small></div>
+        <div class="mono-label"><b>//</b> STORE</div>
+        <div class="tag-row">
+          <span class="tag">VULNERABILITY DNA</span><span class="tag">CWE PATTERN</span><span class="tag">ROOT CAUSE</span><span class="tag">FIX STRATEGY</span><span class="tag">TRIGGER</span><span class="tag">REGRESSION SEED</span><span class="tag">ENVIRONMENT</span><span class="tag">COMPILER</span><span class="tag">SANITIZER</span><span class="tag">EVIDENCE</span><span class="tag">PATCH HASH</span><span class="tag">VERIFICATION SCORE</span><span class="tag">PROVENANCE</span>
+        </div>
+      </div></div></div>
+
+      <div class="cyber crt"><div class="ptitlebar"><span class="dot"></span><span class="t">11 TRANSFER</span><span class="ic">▦</span></div><div class="pbody"><div class="stage">
+        <div class="snum">11 TRANSFER</div>
+        <div class="sname">KNOWLEDGE TRANSFER EXPERIMENT</div>
+        <div class="chain"><span class="term">TARGET A (BUFFER BOUNDARY)</span><span class="chev">&gt;&gt;&gt;</span><span class="term pass">VERIFIED REPAIR</span><span class="chev">&gt;&gt;&gt;</span><span class="term">IMMUNE MEMORY</span><span class="chev">&gt;&gt;&gt;</span><span class="term">PATTERN RETRIEVAL</span><span class="chev">&gt;&gt;&gt;</span><span class="term fail">TARGET B</span><span class="chev">&gt;&gt;&gt;</span><span class="term fail">ANVIL</span><span class="chev">&gt;&gt;&gt;</span><span class="term fail">INDEPENDENT VERIFICATION</span></div>
+        <div class="conn"></div>
+        <div class="mono-label"><b>//</b> EXPERIMENTAL COMPARISON</div>
+        <p style="font-size:13px;">TARGET B WITHOUT MEMORY → ANVIL → Patch Attempts; TARGET B WITH MEMORY → Memory Match → ANVIL → Patch Attempts.</p>
+        <p style="font-size:13px;color:var(--muted);">The system records the actual results. Do not claim improvement unless your experiment demonstrates it.</p>
+      </div></div></div>
+    </div>
+    <div class="dd" style="margin-top:32px;"><span>03 // SECTOR 7-G</span><div class="dmd"></div><span>VERIFY: 7/7</span></div>
+  </section>
+
+  <!-- SECTION E: ARCHITECTURE -->
+  <section class="section" id="architecture">
+    <div class="sec-head">
+      <span class="num">04 //</span>
+      <span class="chev">&gt;&gt;&gt;</span>
+      <h2>DEEP SYSTEM ARCHITECTURE</h2>
+      <div class="sub">ABHIMANYU X — Layered Cyber-Reasoning Architecture</div>
+    </div>
+
+    <div class="planes">
+      <div class="plane"><div class="pl">PRESENTATION PLANE</div><div class="pv">3D Immune Lab | Mission Control | Evidence | Reports | Setup | Target Catalog | Live Terminal | CLI. <span class="accent">(WebSocket/SSE)</span></div></div>
+      <div class="conn"></div>
+      <div class="plane"><div class="pl">MISSION ORCHESTRATION</div><div class="pv"><b class="accent">ABHIMANYU MISSION ENGINE:</b> INIT → INGEST → REWIND → STATIC → FUZZ → CRASH → EVIDENCE → ANVIL → PATCH → VERIFY → MEMORY.</div></div>
+      <div class="conn"></div>
+      <div class="plane"><div class="pl">DISCOVERY ENGINE / <em>ANVIL ENGINE</em> / VERIFICATION ENGINE</div><div class="pv"><b>DISCOVERY:</b> REWIND, Git Diff, Static Analysis, AFL++, ASan, Runtime. &nbsp;<b>ANVIL:</b> Local LLM, Ollama, Qwen Coder, Evidence, Reasoning, Patch. &nbsp;<b>VERIFICATION:</b> Build, Replay, Regression, ASan, UBSan, Behaviour.</div></div>
+      <div class="conn"></div>
+      <div class="plane"><div class="pl">EVIDENCE LAYER</div><div class="pv">Findings, Crash artifacts, Stack traces, Patches, Test results, Provenance.</div></div>
+      <div class="conn"></div>
+      <div class="plane"><div class="pl">IMMUNE MEMORY</div><div class="pv">Vulnerability DNA, Patterns, Fix strategies, Regression seeds, Environment data.</div></div>
+      <div class="conn"></div>
+      <div class="plane"><div class="pl">EXECUTION PLANE</div><div class="pv">Host macOS → Colima / Linux VM → Docker Sandbox → Target Application, AFL++, Clang, ASan, UBSan. <span class="accent">CPU / Memory / Disk / Network limits.</span> This demonstrates that the security analysis is isolated from the host.</div></div>
+    </div>
+
+    <div style="height:24px;"></div>
+    <div class="grid g2">
+      <div class="cyber crt"><div class="ptitlebar"><span class="dot"></span><span class="t">CONTROL PLANE</span><span class="ic">×</span></div><div class="pbody">
+        <div class="tag-row"><span class="tag">MISSION</span><span class="tag">ENVIRONMENT</span><span class="tag">POLICY</span><span class="tag">ORCHESTRATION</span><span class="tag">SCHEDULING</span><span class="tag">RETRY</span><span class="tag">STATE</span></div>
+      </div></div>
+      <div class="cyber crt"><div class="ptitlebar"><span class="dot"></span><span class="t">DATA PLANE</span><span class="ic">▦</span></div><div class="pbody">
+        <div class="tag-row"><span class="tag">SOURCE</span><span class="tag">BINARY</span><span class="tag">FUZZ INPUT</span><span class="tag">CRASH</span><span class="tag">PATCH</span><span class="tag">TESTS</span><span class="tag">ARTIFACTS</span><span class="tag">EVIDENCE</span></div>
+      </div></div>
+    </div>
+
+    <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:24px;align-items:flex-end;">
+      <div class="miniterm"><div class="scrl">FUZZ: exec/s 4821 / CRASH: 00017 / ASAN: HBoF<br>COV: 62.4% / CORPUS: 184 / PATHS: 512</div><div class="cap">FUZZ FEED</div></div>
+      <div class="miniterm"><div class="scrl">ANVIL: QWEN-3B / REASON: 0.8s / PATCH #1<br>ROOT CAUSE: LEN OOB / TRIGGER: &gt;CAP</div><div class="cap">ANVIL FEED</div></div>
+      <div class="miniterm"><div class="scrl">VERIFY: BUILD ✓ REPLAY ✓ REGR ✓ ASAN ✓ UBSAN ✓<br>GATES: 7/7 → VERIFIED</div><div class="cap">VERIFY FEED</div></div>
+    </div>
+
+    <div class="dd" style="margin-top:32px;"><span>04 // SECTOR 7-G</span><div class="dmd"></div><span>ISOLATION: HOST / VM / SANDBOX</span></div>
+  </section>
+
+  <!-- SECTION F: NOVELTY / TRUST -->
+  <section class="section" id="novelty">
+    <div class="sec-head">
+      <span class="num">05 //</span>
+      <span class="chev">&gt;&gt;&gt;</span>
+      <h2>NOVELTY / TRUST / TECHNICAL DIFFERENTIATION</h2>
+      <div class="sub">From AI-Assisted Security to Evidence-Driven Cyber Reasoning</div>
+    </div>
+
+    <div class="cyber crt" style="margin-bottom:24px;">
+      <div class="ptitlebar"><span class="dot"></span><span class="t">// TRUST BOUNDARY</span><span class="ic">▦</span></div>
+      <div class="pbody">
+        <div class="trust">
+          <div class="tb"><div class="tt">ANVIL / AI</div><div class="ts">proposes reasoning, proposes patch</div><div class="tst">UNTRUSTED</div></div>
+          <div class="arrow">&gt;&gt;&gt;</div>
+          <div class="tb"><div class="tt">VERIFICATION ENGINE</div><div class="ts">Build, Replay, Regression, Sanitizers, Adversarial, Behaviour</div><div class="tst" style="color:var(--text);">VERIFIED</div></div>
+          <div class="arrow">&gt;&gt;&gt;</div>
+          <div class="tb"><div class="tt">IMMUNE MEMORY</div><div class="ts">Trusted knowledge</div><div class="tst" style="color:var(--green);">TRUSTED</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="novels">
+      <div class="novel"><div class="nn">NOVELTY 1</div><div class="nt">AI Does Not Self-Certify</div><p><b>Conventional AI repair:</b> Code → LLM → Patch → Done. <b>ABHIMANYU X:</b> Code → Evidence → LLM → Patch → Independent verification → PASS? NO → retry; YES → Memory.</p></div>
+      <div class="novel"><div class="nn">NOVELTY 2</div><div class="nt">Evidence Bundle</div><p>The LLM isn't operating in isolation. It receives: Git Diff + Static Finding + Crash + ASan + Stack + Reproduction + Relevant Source. Evidence-grounded security reasoning rather than generic code completion.</p></div>
+      <div class="novel"><div class="nn">NOVELTY 3</div><div class="nt">Closed-Loop Repair</div><p>PATCH #1 → VERIFY → FAIL → FAILURE EVIDENCE → ANVIL → PATCH #2 → VERIFY. Autonomous repair loop with bounded retries.</p></div>
+      <div class="novel"><div class="nn">NOVELTY 4</div><div class="nt">Adversarial Patch Verification</div><p>Also test: Original exploit + Boundary variations + Malformed inputs + Regression cases + Sanitizers + Normal behaviour. Reduces the risk of a patch that merely suppresses the original symptom.</p></div>
+      <div class="novel"><div class="nn">NOVELTY 5</div><div class="nt">Immune Memory</div><p><b>Normal security scanner:</b> Vulnerability → Report. <b>ABHIMANYU X:</b> Vulnerability → Root Cause → Verified Repair → Pattern → Immune Memory → Future Target.</p></div>
+      <div class="novel"><div class="nn">NOVELTY 6</div><div class="nt">Transfer Experiment</div><p>APPLICATION A → Verified Vulnerability → Immune DNA → APPLICATION B → Pattern Match → ANVIL → Independent Verification.</p></div>
+      <div class="novel" style="grid-column:1/-1;"><div class="nn">NOVELTY 7</div><div class="nt">Provenance</div><p>MISSION ID → COMMIT SHA → TARGET SHA → ENVIRONMENT → TOOLCHAIN → CRASH HASH → PATCH SHA → TEST RESULTS → MEMORY ID.</p></div>
+    </div>
+
+    <div style="height:24px;"></div>
+    <div class="mono-label" style="margin-bottom:12px;"><b>//</b> EVIDENCE TAXONOMY</div>
+    <div class="taxo">
+      <div class="tx"><div class="tk">MEASURED</div><div class="tv">Real execution result</div></div>
+      <div class="tx"><div class="tk">AI-GENERATED</div><div class="tv">Produced by local LLM</div></div>
+      <div class="tx"><div class="tk">VERIFIED</div><div class="tv">Passed defined verification gates</div></div>
+      <div class="tx"><div class="tk">DEMO</div><div class="tv">Deterministic demonstration data</div></div>
+      <div class="tx"><div class="tk">FUTURE</div><div class="tv">Architecture planned but not implemented</div></div>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-top:12px;">Never blur these categories.</p>
+
+    <div style="height:24px;"></div>
+    <div class="iconrow">
+      <div class="iconunit"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg><div class="lbl">FUZZ</div></div>
+      <div class="iconunit"><svg viewBox="0 0 24 24"><path d="M5 17l5-7 4 4 5-8"/></svg><div class="lbl">ANVIL</div></div>
+      <div class="iconunit"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7z"/></svg><div class="lbl">VERIFY</div></div>
+      <div class="iconunit"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg><div class="lbl">MEMORY</div></div>
+      <div class="iconunit"><svg viewBox="0 0 24 24"><path d="M4 12h16M13 5l7 7-7 7"/></svg><div class="lbl">TRANSFER</div></div>
+    </div>
+
+    <div class="dd" style="margin-top:32px;"><span>05 // SECTOR 7-G</span><div class="dmd"></div><span>TRUST: BOUNDED</span></div>
+  </section>
+
+  <!-- SECTION G: DELIVERABLES / DEMO / DEPLOYMENT -->
+  <section class="section" id="deliverables">
+    <div class="sec-head">
+      <span class="num">06 //</span>
+      <span class="chev">&gt;&gt;&gt;</span>
+      <h2>DELIVERABLES / DEMONSTRATION / DEPLOYMENT</h2>
+      <div class="sub">From One Command to a Reproducible Security Mission</div>
+    </div>
+
+    <div class="grid g2">
+      <div class="cyber crt">
+        <div class="ptitlebar"><span class="dot"></span><span class="t">// CLI USER FLOW</span><span class="ic">▦</span></div>
+        <div class="pbody">
+          <div class="cli">
+            <div class="step"><span class="cmd">USER</span><span class="chev">&gt;&gt;&gt;</span><span>abhimanyu doctor</span><span class="chev">&gt;&gt;&gt;</span><span>Environment Ready?</span></div>
+            <div class="step"><span class="chev">»</span><span>abhimanyu mission</span><span class="chev">&gt;&gt;&gt;</span><span class="cmd">ABHIMANYU X:</span></div>
+            <div class="step" style="padding-left:16px;"><span class="cmd">DISCOVER</span><span class="chev">,</span><span class="cmd">UNDERSTAND</span><span class="chev">,</span><span class="cmd">REPAIR</span><span class="chev">,</span><span class="cmd">VERIFY</span><span class="chev">,</span><span class="cmd">REMEMBER</span></div>
+            <div class="step"><span class="chev">»</span><span>abhimanyu transfer</span><span class="chev">&gt;&gt;&gt;</span><span>TARGET B</span><span class="chev">&gt;&gt;&gt;</span><span class="cmd">TRANSFER RESULT</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cyber crt">
+        <div class="ptitlebar"><span class="dot"></span><span class="t">// ONE-COMMAND SETUP</span><span class="ic">×</span></div>
+        <div class="pbody">
+          <div class="cli">
+            <div class="step"><span class="cmd">git clone &lt;repository&gt;</span></div>
+            <div class="step"><span class="cmd">cd abhimanyu-x</span></div>
+            <div class="step"><span class="cmd">./setup.sh</span></div>
+            <div class="step"><span class="cmd">abhimanyu doctor</span></div>
+            <div class="step"><span class="cmd">abhimanyu mission</span></div>
+          </div>
+          <div class="conn"></div>
+          <div class="mono-label"><b>//</b> OR IF THE IMPLEMENTATION SUPPORTS IT</div>
+          <div class="cli">
+            <div class="step"><span class="cmd">./abhimanyu setup</span></div>
+            <div class="step"><span class="cmd">./abhimanyu mission</span></div>
+          </div>
+          <div class="conn"></div>
+          <div class="mono-label"><b>//</b> SETUP WIZARD DETECTS</div>
+          <div class="tag-row">
+            <span class="tag">OS</span><span class="tag">ARCHITECTURE</span><span class="tag">PYTHON</span><span class="tag">DOCKER</span><span class="tag">COLIMA</span><span class="tag">CLANG</span><span class="tag">AFL++</span><span class="tag">OLLAMA</span><span class="tag">MODEL</span><span class="tag">AVAILABLE CPU</span><span class="tag">AVAILABLE RAM</span>
+          </div>
+          <p style="font-size:13px;color:var(--muted);">Then tell the user exactly what is missing.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCESS REQUEST FORM -->
+    <div style="height:24px;"></div>
+    <div class="cyber crt">
+      <div class="ptitlebar"><span class="dot pending"></span><span class="t">// ACCESS REQUEST / OPERATOR CLEARANCE</span><span class="ic">×</span></div>
+      <div class="pbody">
+        <div class="formsteps">
+          <b>01 IDENTIFY</b><span class="chev">&gt;&gt;&gt;</span>
+          <b>02 CONTEXT</b><span class="chev">&gt;&gt;&gt;</span>
+          <b>03 PARAMETERS</b>
+        </div>
+        <div class="grid g3">
+          <div class="fgroup">
+            <label for="f1">01 IDENTIFY // OPERATOR CALLSIGN</label>
+            <div class="field"><input id="f1" type="text" placeholder="CALLSIGN"></div>
+          </div>
+          <div class="fgroup">
+            <label for="f2">01 IDENTIFY // SECURITY CLEARANCE</label>
+            <div class="field"><input id="f2" type="text" placeholder="LEVEL / UNIT"></div>
+          </div>
+          <div class="fgroup">
+            <label for="f3">02 CONTEXT // TARGET REPOSITORY</label>
+            <div class="field"><input id="f3" type="text" placeholder="secure_packet_parser"></div>
+          </div>
+          <div class="fgroup">
+            <label for="f4">02 CONTEXT // LANGUAGE</label>
+            <div class="field"><select id="f4">
+              <option value="C">C</option>
+              <option value="C++">C++</option>
+              <option value="RUST">RUST</option>
+              <option value="PYTHON">PYTHON</option>
+            </select></div>
+          </div>
+          <div class="fgroup">
+            <label for="f5">03 PARAMETERS // VERIFY GATES</label>
+            <div class="field"><select id="f5">
+              <option value="7">7 / 7 FULL</option>
+              <option value="4">4 / 7 CORE</option>
+            </select></div>
+          </div>
+          <div class="fgroup">
+            <label>03 PARAMETERS // MODE</label>
+            <div class="radio-opts">
+              <label class="bracket"><input type="radio" name="mode" checked> <span class="bx">[</span> X <span class="bx">]</span> AUTONOMOUS</label>
+              <label class="bracket"><input type="radio" name="mode"> <span class="bx">[</span> &nbsp; <span class="bx">]</span> HUMAN-REVIEW</label>
+            </div>
+          </div>
+        </div>
+        <button class="cta submit" id="ctaAccess">
+          <span class="corner c-tl"></span><span class="corner c-tr"></span>
+          <span class="corner c-bl"></span><span class="corner c-br"></span>
+          REQUEST ACCESS
+        </button>
+        <div class="submitline" id="accessResult">SUBMIT → REVIEWED WITHIN 24H → ACCESS CODE ISSUED</div>
+      </div>
+    </div>
+
+    <div class="dd" style="margin-top:32px;"><span>06 // SECTOR 7-G</span><div class="dmd"></div><span>MISSION: QUEUED</span></div>
+  </section>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap foot">
+    <div>MISSION ID: <b>ABX-2026-Q3</b> / SYSTEM: <b>ABHIMANYU X</b> / EVIDENCE-DRIVEN CYBER-REASONING</div>
+    <div>GRID: X-042 / Y-118 &nbsp;//&nbsp; BATCH: 2026-Q3 &nbsp;//&nbsp; REV: v2.4.1</div>
+    <div>PROGRAM: <b>AI KAVACH CHALLENGE</b> &nbsp;//&nbsp; ALIGNMENT: CYBER-SECURITY</div>
+  </div>
+  <div class="wrap foot" style="padding-top:0;">
+    <div class="dd" style="width:100%;"><div class="dmd"></div></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  /* ---------- CLOCK ---------- */
+  function pad(n){return String(n).padStart(2,'0');}
+  function tickClock(){
+    var d=new Date();
+    document.getElementById('clock').textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+    var opts={year:'numeric',month:'short',day:'2-digit'};
+    document.getElementById('clockdate').textContent=d.toLocaleDateString('en-US',opts)+' // UTC'+(-d.getTimezoneOffset()/60);
+  }
+  tickClock(); setInterval(tickClock,1000);
+
+  /* ---------- MISSION TIMER (count up) ---------- */
+  var mt=0;
+  var mtEl=document.getElementById('missiontimer');
+  setInterval(function(){mt++;mtEl.textContent=pad(Math.floor(mt/3600))+':'+pad(Math.floor(mt%3600/60))+':'+pad(mt%60);},1000);
+
+  /* ---------- GAUGES ---------- */
+  var gauges=document.querySelectorAll('.gauge');
+  var circ=94.2;
+  function setGauges(){
+    gauges.forEach(function(g){
+      var arc=g.querySelector('.arc');var gv=g.querySelector('.gval');
+      var val=parseFloat(g.getAttribute('data-gauge'))||0;
+      arc.style.strokeDashoffset=circ-(circ*val/100);
+    });
+  }
+  setTimeout(setGauges,300);
+
+  /* ---------- CTA INTERACTION ---------- */
+  var ctaInit=document.getElementById('ctaInit');
+  var states=['MISSION QUEUED → DISCOVER → EVIDENCE → VERIFY → IMMUNE MEMORY','DISCOVER: REWIND + STATIC ✓','FUZZ: AFL++ 4821 exec/s / CRASH-00017','ANVIL: REASON → PATCH #1 (AI-GENERATED NOT VERIFIED)','VERIFY: 7/7 → VERIFIED → IMMUNE MEMORY'];
+  var si=0;
+  ctaInit.addEventListener('click',function(){
+    ctaInit.textContent='';
+    var sp=document.createElement('span');sp.className='corner c-tl';
+    var sp2=document.createElement('span');sp2.className='corner c-tr';
+    var sp3=document.createElement('span');sp3.className='corner c-bl';
+    var sp4=document.createElement('span');sp4.className='corner c-br';
+    ctaInit.appendChild(sp);ctaInit.appendChild(sp2);ctaInit.appendChild(sp3);ctaInit.appendChild(sp4);
+    ctaInit.appendChild(document.createTextNode('MISSION '+(si<5?'RUNNING':'ACTIVE')));
+    si=(si+1)%states.length;
+  });
+
+  var ctaAccess=document.getElementById('ctaAccess');
+  ctaAccess.addEventListener('click',function(e){
+    e.preventDefault();
+    document.getElementById('accessResult').innerHTML='<b>SUBMIT ✓</b> → REVIEWED WITHIN 24H → ACCESS CODE ISSUED';
+  });
+
+  /* ---------- 3D WIREFRAME RENDERER (vanilla canvas) ---------- */
+  var canvas=document.getElementById('drone');
+  var box=document.getElementById('canvasbox');
+  var ctx=canvas.getContext('2d');
+  var W=0,H=0,DPR=1;
+
+  /* build drone edge model */
+  function buildDrone(){
+    var E=[];
+    function add(x1,y1,z1,x2,y2,z2,op){E.push([x1,y1,z1,x2,y2,z2,op==null?1:op]);}
+    var hw=.35,hh=.16,hd=.35;
+    var cs=[[-hw,-hh,-hd],[hw,-hh,-hd],[hw,-hh,hd],[-hw,-hh,hd],[-hw,hh,-hd],[hw,hh,-hd],[hw,hh,hd],[-hw,hh,hd]];
+    var be=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+    for(var i=0;i<be.length;i++){var a=cs[be[i][0]],b=cs[be[i][1]];add(a[0],a[1],a[2],b[0],b[1],b[2],.9);}
+    var sub=3;
+    for(i=1;i<sub;i++){
+      var t=-hw+(2*hw)*(i/sub);
+      add(t,-hh,-hd,t,-hh,hd,.32);add(t,hh,-hd,t,hh,hd,.32);
+      add(-hw,-hh,-hd+(2*hd)*(i/sub),hw,-hh,-hd+(2*hd)*(i/sub),.32);
+      add(-hw,hh,-hd+(2*hd)*(i/sub),hw,hh,-hd+(2*hd)*(i/sub),.32);
+    }
+    var arms=[[.28,.14,.28,.9,.2,.9],[-.28,.14,.28,-.9,.2,.9],[.28,.14,-.28,.9,.2,-.9],[-.28,.14,-.28,-.9,.2,-.9]];
+    for(i=0;i<arms.length;i++){var a=arms[i];add(a[0],a[1],a[2],a[3],a[4],a[5],.8);}
+    var str=[[.22,-.16,.22,.3,-.52,.3],[-.22,-.16,.22,-.3,-.52,.3],[.22,-.16,-.22,.3,-.52,-.3],[-.22,-.16,-.22,-.3,-.52,-.3]];
+    for(i=0;i<str.length;i++){var s=str[i];add(s[0],s[1],s[2],s[3],s[4],s[5],.8);add(s[3]-.07,s[4],s[5],s[3]+.07,s[4],s[5],.55);}
+    add(0,.16,0,0,.48,0,.7);add(-.07,.48,0,.07,.48,0,.45);
+    function circle(cy,rad,seg,op){
+      var pts=[];
+      for(var k=0;k<seg;k++){var an=2*Math.PI*k/seg;pts.push([Math.cos(an)*rad,cy,Math.sin(an)*rad]);}
+      for(k=0;k<seg;k++){var A=pts[k],B=pts[(k+1)%seg];add(A[0],A[1],A[2],B[0],B[1],B[2],op);}
+    }
+    circle(-.28,.20,26,.45);
+    circle(-.33,.13,26,.4);
+    add(0,-.16,0,0,-.28,0,.6);
+    var rotors=[
+      {cx:.9,cy:.22,cz:.9,sp:.030},
+      {cx:-.9,cy:.22,cz:.9,sp:-.036},
+      {cx:.9,cy:.22,cz:-.9,sp:-.030},
+      {cx:-.9,cy:.22,cz:-.9,sp:.036}
+    ];
+    return {E:E,rotors:rotors};
+  }
+  var D=buildDrone();
+
+  var rotY=0,rotX=0,autoRot=true;
+  var last=performance.now();
+  var tsec=0;
+
+  function resize(){
+    DPR=Math.min(window.devicePixelRatio||1,2);
+    W=box.clientWidth;H=box.clientHeight;
+    canvas.width=W*DPR;canvas.height=H*DPR;
+    canvas.style.width=W+'px';canvas.style.height=H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  if(window.ResizeObserver){new ResizeObserver(resize).observe(box);}else{window.addEventListener('resize',resize);}
+  resize();
+
+  function proj(x,y,z,cx,cy,base,focal){
+    var x1=x*Math.cos(rotY)+z*Math.sin(rotY);
+    var z1=-x*Math.sin(rotY)+z*Math.cos(rotY);
+    var y1=y*Math.cos(rotX)-z1*Math.sin(rotX);
+    var z2=y*Math.sin(rotX)+z1*Math.cos(rotX);
+    var sc=focal/(focal+z2);
+    return {x:cx+x1*sc*base,y:cy+y1*sc*base};
+  }
+
+  function draw(){
+    var now=performance.now();var dt=(now-last)/1000;last=now;if(dt>0.05)dt=0.05;
+    tsec+=dt;
+    if(autoRot)rotY+=dt*0.3;
+    ctx.clearRect(0,0,W,H);
+    var cx=W/2,cy=H/2;
+    var base=Math.min(W,H)*0.60/2.9;
+    var focal=4;
+    var mat=0.85+0.15*Math.sin(tsec*2);
+    ctx.lineWidth=1;
+    ctx.strokeStyle='#ff7235';
+    ctx.globalAlpha=1;
+    /* grid floor */
+    ctx.strokeStyle='rgba(42,21,16,0.9)';
+    for(var i=-3;i<=3;i++){
+      var p1=proj(i,-1.2,-3,cx,cy,base,focal),p2=proj(i,-1.2,3,cx,cy,base,focal);
+      ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
+      var q1=proj(-3,-1.2,i,cx,cy,base,focal),q2=proj(3,-1.2,i,cx,cy,base,focal);
+      ctx.beginPath();ctx.moveTo(q1.x,q1.y);ctx.lineTo(q2.x,q2.y);ctx.stroke();
+    }
+    ctx.strokeStyle='#ff7235';
+    /* drone edges */
+    for(i=0;i<D.E.length;i++){
+      var e=D.E[i];
+      var a=proj(e[0],e[1],e[2],cx,cy,base,focal),b=proj(e[3],e[4],e[5],cx,cy,base,focal);
+      ctx.globalAlpha=e[6]*mat;
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    }
+    /* spinning propellers */
+    for(i=0;i<D.rotors.length;i++){
+      var r=D.rotors[i];
+      r.spin=(r.spin||0)+r.sp;
+      var L=.42,ang=r.spin;
+      var dx=Math.cos(ang)*L,dz=Math.sin(ang)*L;
+      var pa=proj(r.cx-dx,r.cy,r.cz-dz,cx,cy,base,focal),pb=proj(r.cx+dx,r.cy,r.cz+dz,cx,cy,base,focal);
+      var pc=proj(r.cx-dz,r.cy,r.cz+dx,cx,cy,base,focal),pd=proj(r.cx+dz,r.cy,r.cz-dx,cx,cy,base,focal);
+      ctx.globalAlpha=.9*mat;
+      ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(pc.x,pc.y);ctx.lineTo(pd.x,pd.y);ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+
+  /* drag to rotate */
+  var dragging=false,lastX=0,lastY=0;
+  canvas.addEventListener('pointerdown',function(ev){
+    dragging=true;autoRot=false;canvas.classList.add('dragging');
+    lastX=ev.clientX;lastY=ev.clientY;canvas.setPointerCapture(ev.pointerId);
+  });
+  canvas.addEventListener('pointermove',function(ev){
+    if(!dragging)return;
+    var dx=ev.clientX-lastX,dy=ev.clientY-lastY;
+    lastX=ev.clientX;lastY=ev.clientY;
+    rotY+=dx*0.008;
+    rotX+=dy*0.008;
+    if(rotX>0.8)rotX=0.8;if(rotX<-0.8)rotX=-0.8;
+  });
+  function endDrag(){dragging=false;canvas.classList.remove('dragging');}
+  canvas.addEventListener('pointerup',endDrag);
+  canvas.addEventListener('pointercancel',endDrag);
+})();
+</script>
+</body>
+</html>
