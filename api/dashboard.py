@@ -1127,14 +1127,35 @@ function loadEnvironments() {
 function loadDoctor() {
     document.getElementById('envlab-tools').innerHTML = '<div style="color:var(--text-dim); font-size:12px;">Running live checks…</div>';
     fetch('/api/sentinel/doctor').then(r => r.json()).then(d => {
-        const rows = d.checks.map(c => {
+        const toolRow = c => {
             const mark = c.found ? '<span class="ok">✓</span>' : '<span class="pending">○</span>';
             return '<div class="tool-row"><span class="tn">' + mark + ' ' + c.name + '</span>' +
                 '<span style="color:var(--text-dim); font-size:11px;">' + (c.version || c.note || '') + '</span></div>';
-        }).join('');
+        };
+        const o = d.ollama;
+        const ollamaBox =
+            '<div style="border:1px solid var(--border); border-radius:6px; padding:10px 12px; margin-bottom:12px;">' +
+            '<div style="font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--cyan); margin-bottom:6px;">Local AI (Ollama)</div>' +
+            toolRow({name: 'INSTALLATION (macOS binary)', found: o.installation.found, note: o.installation.found ? 'installed' : 'not found locally — informational only, see below'}) +
+            toolRow({name: 'MODEL SERVER', found: o.server.found, note: o.server.note}) +
+            toolRow({name: 'MODEL', found: o.model.found, note: o.model.note}) +
+            toolRow({name: 'INFERENCE', found: o.inference_ready, note: o.inference_ready ? 'READY' : 'UNAVAILABLE'}) +
+            '</div>';
+
+        const toolchainNames = ['clang', 'clang++', 'gcc', 'cmake', 'make'];
+        const toolchainChecks = d.checks.filter(c => toolchainNames.includes(c.name));
+        const otherChecks = d.checks.filter(c => !toolchainNames.includes(c.name) &&
+            !c.name.startsWith('model') && !c.name.startsWith('ollama') && c.name !== 'inference ready');
+        const toolchainBox =
+            '<div style="border:1px solid var(--border); border-radius:6px; padding:10px 12px; margin-bottom:12px;">' +
+            '<div style="font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--cyan); margin-bottom:6px;">Compiler Toolchain</div>' +
+            toolchainChecks.map(toolRow).join('') +
+            '</div>';
+
         document.getElementById('envlab-tools').innerHTML =
             '<div style="font-size:12px; margin-bottom:8px;">' + d.os + ' ' + d.os_version + ' (' + d.arch + ') · Python ' + d.python_version + '</div>' +
-            rows +
+            ollamaBox + toolchainBox +
+            otherChecks.map(toolRow).join('') +
             '<div class="tool-row"><span class="tn"><span class="pending">○</span> KVM</span><span style="color:var(--text-dim); font-size:11px;">' + d.kvm_note + '</span></div>';
     });
 }

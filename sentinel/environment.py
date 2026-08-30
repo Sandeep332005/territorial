@@ -62,41 +62,94 @@ def check_colima_docker() -> ToolCheck:
         return ToolCheck(name="docker", found=True, path=path, note="daemon check timed out")
 
 
-def check_ollama_model(model: str, api_url: str) -> ToolCheck:
-    """Whether the specific local model ANVIL is configured to use is
-    actually pulled and reachable — a real HTTP call, not just checking the
-    `ollama` binary."""
+def _ollama_tags(api_url: str, timeout: int = 3):
+    """Real HTTP call to the actual endpoint ANVIL calls for inference —
+    not the macOS `ollama` binary, which may be a completely separate,
+    unrelated local install with nothing listening on its default port
+    while the real serving instance (e.g. inside the Colima VM, forwarded
+    to a different host port) is fully up. Returns the parsed tags JSON or
+    raises."""
     import urllib.request
     import json as _json
     tags_url = api_url.rsplit("/api/", 1)[0] + "/api/tags"
+    req = urllib.request.Request(tags_url)
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return tags_url, _json.loads(resp.read().decode())
+
+
+def check_model_server(api_url: str) -> ToolCheck:
+    """Is the Ollama HTTP server ANVIL actually points at reachable at all —
+    independent of whether any particular model is pulled."""
     try:
-        req = urllib.request.Request(tags_url)
-        with urllib.request.urlopen(req, timeout=3) as resp:
-            data = _json.loads(resp.read().decode())
-            names = [m.get("name") for m in data.get("models", [])]
-            if model in names:
-                return ToolCheck(name=f"ollama model {model}", found=True, note="pulled and reachable")
-            return ToolCheck(name=f"ollama model {model}", found=False,
-                              note=f"reachable but not pulled (have: {', '.join(names) or 'none'})")
-    except Exception as e:
-        return ToolCheck(name=f"ollama model {model}", found=False, note=f"unreachable at {tags_url}")
+        tags_url, data = _ollama_tags(api_url)
+        return ToolCheck(name="model server", found=True, note=f"online at {tags_url}")
+    except Exception:
+        tags_url = api_url.rsplit("/api/", 1)[0] + "/api/tags"
+        return ToolCheck(name="model server", found=False, note=f"offline — no response from {tags_url}")
+
+
+def check_model_present(model: str, api_url: str) -> ToolCheck:
+    """Is the specific model ANVIL is configured to use pulled on that
+    server. Only meaningful once the server itself is reachable."""
+    try:
+        _, data = _ollama_tags(api_url)
+        names = [m.get("name") for m in data.get("models", [])]
+        if model in names:
+            return ToolCheck(name=f"model {model}", found=True, note="present")
+        return ToolCheck(name=f"model {model}", found=False,
+                          note=f"not pulled on this server (have: {', '.join(names) or 'none'})")
+    except Exception:
+        return ToolCheck(name=f"model {model}", found=False, note="server unreachable, cannot check")
+
+
+def compiler_toolchain_report() -> List[ToolCheck]:
+    """On macOS, `gcc` is virtually always an alias to Apple Clang, not the
+    real GNU Compiler Collection — reporting its `--version` output under
+    the name "gcc" without saying so is misleading. Report Clang/Clang++ as
+    what they are, and only claim a genuine GCC when the version string
+    doesn't self-identify as clang."""
+    checks = []
+    for name, label in [("clang", "clang"), ("clang++", "clang++")]:
+        checks.append(check_tool(name, [name, "--version"]))
+    gcc_path = _which("gcc")
+    if gcc_path:
+        version = _version(["gcc", "--version"]) or ""
+        if "clang" in version.lower():
+            checks.append(ToolCheck(name="gcc", found=False,
+                                     note=f"N/A on this host — 'gcc' is Apple Clang in disguise ({version})"))
+        else:
+            checks.append(ToolCheck(name="gcc", found=True, path=gcc_path, version=version))
+    else:
+        checks.append(ToolCheck(name="gcc", found=False, note="not installed"))
+    checks.append(check_tool("cmake", ["cmake", "--version"]))
+    checks.append(check_tool("make", ["make", "--version"]))
+    return checks
 
 
 def system_report(anvil_model: str = "qwen2.5-coder:3b",
                    anvil_api_url: str = "http://127.0.0.1:21434/api/generate") -> dict:
     """Full real readiness report. Every field is a live check performed
     at call time, not a cached or hardcoded value."""
+    ollama_binary = check_tool("ollama (macOS binary)", ["ollama", "--version"],
+                                note="local install check only — the server ANVIL actually calls may be a "
+                                     "different instance (e.g. inside the Colima VM); see the checks below")
+    server = check_model_server(anvil_api_url)
+    model = check_model_present(anvil_model, anvil_api_url)
+    inference_ready = server.found and model.found
+
     checks = [
         check_tool("git", ["git", "--version"]),
         check_tool("python3", ["python3", "--version"]),
         check_tool("node", ["node", "--version"], note="optional — not required by this project"),
-        check_tool("clang", ["clang", "--version"]),
-        check_tool("gcc", ["gcc", "--version"]),
+        *compiler_toolchain_report(),
         check_colima_docker(),
         check_tool("colima", ["colima", "version"], note="Linux VM manager used for AFL++/ASan"),
-        check_tool("ollama", ["ollama", "--version"],
-                   note="binary check only — may report a local install even when the model actually serving ANVIL runs elsewhere (e.g. inside the Colima VM); see the model check below for what matters"),
-        check_ollama_model(anvil_model, anvil_api_url),
+        ollama_binary,
+        server,
+        model,
+        ToolCheck(name="inference ready", found=inference_ready,
+                   note="model server online and model present" if inference_ready
+                        else "cannot serve ANVIL requests until the server is online and the model is pulled"),
         check_tool("qemu-system-x86_64", note="not used by this project on Apple Silicon; QEMU/KVM environments are FUTURE"),
     ]
     return {
@@ -105,6 +158,12 @@ def system_report(anvil_model: str = "qwen2.5-coder:3b",
         "arch": platform.machine(),
         "python_version": platform.python_version(),
         "checks": [asdict(c) for c in checks],
+        "ollama": {
+            "installation": asdict(ollama_binary),
+            "server": asdict(server),
+            "model": asdict(model),
+            "inference_ready": inference_ready,
+        },
         "kvm_available": False,
         "kvm_note": "KVM is a Linux kernel feature; unavailable on any macOS host regardless of configuration.",
     }

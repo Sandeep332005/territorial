@@ -7,7 +7,7 @@
 set -e
 
 VERSION="2.0"
-SENTINELX_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ABHIMANYUX_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT_DIR=$(pwd)/output
 
 # Colors
@@ -59,8 +59,8 @@ echo "[2/4] Adding ABHIMANYU X..."
 mkdir -p "$BUILD_DIR/iso/abhimanyux"
 
 # Copy ABHIMANYU X
-cp -r "$SENTINELX_SRC"/{core,platform,rewind,fuzzer,anvil,verifier,memory,models} "$BUILD_DIR/iso/abhimanyux/"
-cp "$SENTINELX_SRC"/requirements.txt "$BUILD_DIR/iso/abhimanyux/"
+cp -r "$ABHIMANYUX_SRC"/{core,platform,rewind,fuzzer,anvil,verifier,memory,models} "$BUILD_DIR/iso/abhimanyux/"
+cp "$ABHIMANYUX_SRC"/requirements.txt "$BUILD_DIR/iso/abhimanyux/"
 
 # Create installer script
 cat > "$BUILD_DIR/iso/abhimanyux/install.sh" << 'INSTALL'
@@ -76,7 +76,7 @@ sudo apt-get install -y python3 python3-pip python3-venv
 # Install Ollama
 curl -fsSL https://ollama.com/install.sh | sh
 
-# Setup SENTINELX
+# Setup ABHIMANYUX
 cd /abhimanyux
 python3 -m venv venv
 source venv/bin/activate
@@ -120,7 +120,7 @@ find . -type f -not -path "./isolinux/*" -not -path "./boot/grub/*" -exec md5sum
 # Create new ISO
 mkdir -p "$OUTPUT_DIR"
 xorriso -as mkisofs \
-    -r -V "SENTINELX-Live" \
+    -r -V "ABHIMANYUX-Live" \
     -o "$OUTPUT_DIR/ABHIMANYU X-Live-${VERSION}.iso" \
     -b isolinux/isolinux.bin \
     -c isolinux/boot.cat \

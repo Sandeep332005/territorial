@@ -7,7 +7,7 @@
 set -e
 
 # Configuration
-SENTINELX_VERSION="2.0"
+ABHIMANYUX_VERSION="2.0"
 BUILD_DIR=$(pwd)/build
 OUTPUT_DIR=$(pwd)/output
 ROOTFS_DIR=$(pwd)/rootfs
@@ -170,20 +170,20 @@ install_ollama_rootfs() {
 install_abhimanyux_rootfs() {
     print_info "Installing ABHIMANYU X in rootfs..."
     
-    SENTINELX_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    ABHIMANYUX_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
     
     mkdir -p "$BUILD_DIR/rootfs/opt/abhimanyux"
     
     # Copy ABHIMANYU X files
-    cp -r "$SENTINELX_SRC"/core "$BUILD_DIR/rootfs/opt/abhimanyux/"
-    cp -r "$SENTINELX_SRC"/platform "$BUILD_DIR/rootfs/opt/abhimanyux/"
-    cp -r "$SENTINELX_SRC"/rewind "$BUILD_DIR/rootfs/opt/abhimanyux/"
-    cp -r "$SENTINELX_SRC"/fuzzer "$BUILD_DIR/rootfs/opt/abhimanyux/"
-    cp -r "$SENTINELX_SRC"/anvil "$BUILD_DIR/rootfs/opt/abhimanyux/"
-    cp -r "$SENTINELX_SRC"/verifier "$BUILD_DIR/rootfs/opt/abhimanyux/"
-    cp -r "$SENTINELX_SRC"/memory "$BUILD_DIR/rootfs/opt/abhimanyux/"
-    cp -r "$SENTINELX_SRC"/models "$BUILD_DIR/rootfs/opt/abhimanyux/"
-    cp "$SENTINELX_SRC"/requirements.txt "$BUILD_DIR/rootfs/opt/abhimanyux/"
+    cp -r "$ABHIMANYUX_SRC"/core "$BUILD_DIR/rootfs/opt/abhimanyux/"
+    cp -r "$ABHIMANYUX_SRC"/platform "$BUILD_DIR/rootfs/opt/abhimanyux/"
+    cp -r "$ABHIMANYUX_SRC"/rewind "$BUILD_DIR/rootfs/opt/abhimanyux/"
+    cp -r "$ABHIMANYUX_SRC"/fuzzer "$BUILD_DIR/rootfs/opt/abhimanyux/"
+    cp -r "$ABHIMANYUX_SRC"/anvil "$BUILD_DIR/rootfs/opt/abhimanyux/"
+    cp -r "$ABHIMANYUX_SRC"/verifier "$BUILD_DIR/rootfs/opt/abhimanyux/"
+    cp -r "$ABHIMANYUX_SRC"/memory "$BUILD_DIR/rootfs/opt/abhimanyux/"
+    cp -r "$ABHIMANYUX_SRC"/models "$BUILD_DIR/rootfs/opt/abhimanyux/"
+    cp "$ABHIMANYUX_SRC"/requirements.txt "$BUILD_DIR/rootfs/opt/abhimanyux/"
     
     # Create virtual environment and install dependencies
     chroot "$BUILD_DIR/rootfs" /bin/sh -c "
@@ -312,7 +312,7 @@ create_iso() {
     
     mkdir -p "$OUTPUT_DIR"
     
-    local ISO_FILE="$OUTPUT_DIR/ABHIMANYU X-Live-${SENTINELX_VERSION}.iso"
+    local ISO_FILE="$OUTPUT_DIR/ABHIMANYU X-Live-${ABHIMANYUX_VERSION}.iso"
     
     # Check if we have the kernel
     if [ ! -f "$BUILD_DIR/kernel/vmlinuz-virt" ]; then
@@ -440,7 +440,7 @@ REM Create partitions
 echo create partition primary > "%~dp0diskpart.txt"
 echo select partition 1 >> "%~dp0diskpart.txt"
 echo active >> "%~dp0diskpart.txt"
-echo format fs=fat32 quick label="SENTINELX" >> "%~dp0diskpart.txt"
+echo format fs=fat32 quick label="ABHIMANYUX" >> "%~dp0diskpart.txt"
 echo assign >> "%~dp0diskpart.txt"
 echo exit >> "%~dp0diskpart.txt"
 

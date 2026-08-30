@@ -7,7 +7,7 @@
 set -e
 
 # Configuration
-SENTINELX_VERSION="2.0"
+ABHIMANYUX_VERSION="2.0"
 INSTALL_DIR="${HOME}/abhimanyux"
 PYTHON_MIN_VERSION="3.9"
 
@@ -225,9 +225,9 @@ install_abhimanyux() {
     # Create launcher
     cat > "$HOME/.local/bin/abhimanyux" << 'LAUNCHER'
 #!/bin/bash
-SENTINELX_HOME="$HOME/abhimanyux"
-source "$SENTINELX_HOME/venv/bin/activate"
-cd "$SENTINELX_HOME"
+ABHIMANYUX_HOME="$HOME/abhimanyux"
+source "$ABHIMANYUX_HOME/venv/bin/activate"
+cd "$ABHIMANYUX_HOME"
 PYTHONPATH=. python -m abhimanyux.runtime.abhimanyux_platform "$@"
 LAUNCHER
     chmod +x "$HOME/.local/bin/abhimanyux"

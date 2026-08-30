@@ -71,7 +71,7 @@ echo clean >> "%TEMP%\diskpart.txt"
 echo create partition primary >> "%TEMP%\diskpart.txt"
 echo select partition 1 >> "%TEMP%\diskpart.txt"
 echo active >> "%TEMP%\diskpart.txt"
-echo format fs=fat32 quick label="SENTINELX" >> "%TEMP%\diskpart.txt"
+echo format fs=fat32 quick label="ABHIMANYUX" >> "%TEMP%\diskpart.txt"
 echo assign >> "%TEMP%\diskpart.txt"
 echo exit >> "%TEMP%\diskpart.txt"
 

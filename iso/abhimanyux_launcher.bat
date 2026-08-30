@@ -21,7 +21,7 @@ echo.
 
 REM Set installation directory
 set INSTALL_DIR=%USERPROFILE%\abhimanyux
-set SENTINELX_SRC=%~dp0
+set ABHIMANYUX_SRC=%~dp0
 
 echo [*] Installation directory: %INSTALL_DIR%
 echo.
@@ -105,7 +105,7 @@ if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
 
 REM Copy files
 echo Copying files...
-xcopy /E /I /Y "%SENTINELX_SRC%.." "%INSTALL_DIR%" >nul 2>&1
+xcopy /E /I /Y "%ABHIMANYUX_SRC%.." "%INSTALL_DIR%" >nul 2>&1
 
 REM Create virtual environment
 echo Creating virtual environment...

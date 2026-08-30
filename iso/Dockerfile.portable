@@ -12,8 +12,8 @@ LABEL version="2.0"
 
 # Set environment
 ENV PYTHONUNBUFFERED=1
-ENV SENTINELX_HOME=/opt/abhimanyux
-ENV PATH="${SENTINELX_HOME}:${PATH}"
+ENV ABHIMANYUX_HOME=/opt/abhimanyux
+ENV PATH="${ABHIMANYUX_HOME}:${PATH}"
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -27,26 +27,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -fsSL https://ollama.com/install.sh | sh
 
 # Copy ABHIMANYU X
-WORKDIR ${SENTINELX_HOME}
-COPY core/ ${SENTINELX_HOME}/core/
-COPY platform/ ${SENTINELX_HOME}/platform/
-COPY rewind/ ${SENTINELX_HOME}/rewind/
-COPY fuzzer/ ${SENTINELX_HOME}/fuzzer/
-COPY anvil/ ${SENTINELX_HOME}/anvil/
-COPY verifier/ ${SENTINELX_HOME}/verifier/
-COPY memory/ ${SENTINELX_HOME}/memory/
-COPY models/ ${SENTINELX_HOME}/models/
-COPY requirements.txt ${SENTINELX_HOME}/
+WORKDIR ${ABHIMANYUX_HOME}
+COPY core/ ${ABHIMANYUX_HOME}/core/
+COPY platform/ ${ABHIMANYUX_HOME}/platform/
+COPY rewind/ ${ABHIMANYUX_HOME}/rewind/
+COPY fuzzer/ ${ABHIMANYUX_HOME}/fuzzer/
+COPY anvil/ ${ABHIMANYUX_HOME}/anvil/
+COPY verifier/ ${ABHIMANYUX_HOME}/verifier/
+COPY memory/ ${ABHIMANYUX_HOME}/memory/
+COPY models/ ${ABHIMANYUX_HOME}/models/
+COPY requirements.txt ${ABHIMANYUX_HOME}/
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Create launcher script
 RUN echo '#!/bin/bash' > /usr/local/bin/abhimanyux && \
-    echo 'SENTINELX_HOME="/opt/abhimanyux"' >> /usr/local/bin/abhimanyux && \
+    echo 'ABHIMANYUX_HOME="/opt/abhimanyux"' >> /usr/local/bin/abhimanyux && \
     echo 'case "$1" in' >> /usr/local/bin/abhimanyux && \
     echo '    scan)' >> /usr/local/bin/abhimanyux && \
-    echo '        cd "$SENTINELX_HOME"' >> /usr/local/bin/abhimanyux && \
+    echo '        cd "$ABHIMANYUX_HOME"' >> /usr/local/bin/abhimanyux && \
     echo '        PYTHONPATH=. python -m abhimanyux.platform.abhimanyux_platform "$2"' >> /usr/local/bin/abhimanyux && \
     echo '        ;;' >> /usr/local/bin/abhimanyux && \
     echo '    setup)' >> /usr/local/bin/abhimanyux && \

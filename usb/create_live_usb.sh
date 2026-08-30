@@ -8,11 +8,11 @@
 set -e
 
 # Configuration
-SENTINELX_VERSION="2.0"
+ABHIMANYUX_VERSION="2.0"
 UBUNTU_VERSION="22.04"
 BUILD_DIR=$(pwd)/build
 OUTPUT_DIR=$(pwd)/output
-SENTINELX_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ABHIMANYUX_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Colors
 RED='\033[0;31m'
@@ -82,22 +82,22 @@ extract_ubuntu() {
 add_abhimanyux() {
     print_info "Adding ABHIMANYU X to Ubuntu..."
     
-    SENTINELX_DIR="$BUILD_DIR/iso_extract/abhimanyux"
-    mkdir -p "$SENTINELX_DIR"
+    ABHIMANYUX_DIR="$BUILD_DIR/iso_extract/abhimanyux"
+    mkdir -p "$ABHIMANYUX_DIR"
     
     # Copy ABHIMANYU X files
-    cp -r "$SENTINELX_SRC"/core "$SENTINELX_DIR/"
-    cp -r "$SENTINELX_SRC"/platform "$SENTINELX_DIR/"
-    cp -r "$SENTINELX_SRC"/rewind "$SENTINELX_DIR/"
-    cp -r "$SENTINELX_SRC"/fuzzer "$SENTINELX_DIR/"
-    cp -r "$SENTINELX_SRC"/anvil "$SENTINELX_DIR/"
-    cp -r "$SENTINELX_SRC"/verifier "$SENTINELX_DIR/"
-    cp -r "$SENTINELX_SRC"/memory "$SENTINELX_DIR/"
-    cp -r "$SENTINELX_SRC"/models "$SENTINELX_DIR/"
-    cp "$SENTINELX_SRC"/requirements.txt "$SENTINELX_DIR/"
+    cp -r "$ABHIMANYUX_SRC"/core "$ABHIMANYUX_DIR/"
+    cp -r "$ABHIMANYUX_SRC"/platform "$ABHIMANYUX_DIR/"
+    cp -r "$ABHIMANYUX_SRC"/rewind "$ABHIMANYUX_DIR/"
+    cp -r "$ABHIMANYUX_SRC"/fuzzer "$ABHIMANYUX_DIR/"
+    cp -r "$ABHIMANYUX_SRC"/anvil "$ABHIMANYUX_DIR/"
+    cp -r "$ABHIMANYUX_SRC"/verifier "$ABHIMANYUX_DIR/"
+    cp -r "$ABHIMANYUX_SRC"/memory "$ABHIMANYUX_DIR/"
+    cp -r "$ABHIMANYUX_SRC"/models "$ABHIMANYUX_DIR/"
+    cp "$ABHIMANYUX_SRC"/requirements.txt "$ABHIMANYUX_DIR/"
     
     # Create startup script
-    cat > "$SENTINELX_DIR/start.sh" << 'STARTUP'
+    cat > "$ABHIMANYUX_DIR/start.sh" << 'STARTUP'
 #!/bin/bash
 # ABHIMANYU X Auto-Startup Script
 
@@ -188,7 +188,7 @@ echo ""
 echo "Or double-click 'ABHIMANYU X' on desktop"
 echo ""
 STARTUP
-    chmod +x "$SENTINELX_DIR/start.sh"
+    chmod +x "$ABHIMANYUX_DIR/start.sh"
     
     # Create autostart entry
     mkdir -p "$BUILD_DIR/iso_extract/etc/xdg/autostart"
@@ -233,7 +233,7 @@ rebuild_iso() {
     # Create new ISO
     xorriso -as mkisofs \
         -r -V "ABHIMANYU X-Live" \
-        -o "$OUTPUT_DIR/ABHIMANYU X-Live-${SENTINELX_VERSION}.iso" \
+        -o "$OUTPUT_DIR/ABHIMANYU X-Live-${ABHIMANYUX_VERSION}.iso" \
         -b isolinux/isolinux.bin \
         -c isolinux/boot.cat \
         -no-emul-boot \
@@ -358,8 +358,8 @@ main() {
     echo "BUILD COMPLETE"
     echo "============================================================"
     echo ""
-    echo "ISO file: $OUTPUT_DIR/ABHIMANYU X-Live-${SENTINELX_VERSION}.iso"
-    echo "Size: $(du -h "$OUTPUT_DIR/ABHIMANYU X-Live-${SENTINELX_VERSION}.iso" | cut -f1)"
+    echo "ISO file: $OUTPUT_DIR/ABHIMANYU X-Live-${ABHIMANYUX_VERSION}.iso"
+    echo "Size: $(du -h "$OUTPUT_DIR/ABHIMANYU X-Live-${ABHIMANYUX_VERSION}.iso" | cut -f1)"
     echo ""
     echo "See $OUTPUT_DIR/README.txt for instructions"
 }

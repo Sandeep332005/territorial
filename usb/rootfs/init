@@ -117,7 +117,7 @@ echo ""
 # Create abhimanyux command
 cat > /usr/local/bin/abhimanyux << 'LAUNCHER'
 #!/bin/sh
-SENTINELX_HOME="/opt/abhimanyux"
+ABHIMANYUX_HOME="/opt/abhimanyux"
 
 case "$1" in
     scan)
@@ -129,7 +129,7 @@ case "$1" in
         echo "Scanning: $2"
         echo ""
         
-        cd "$SENTINELX_HOME"
+        cd "$ABHIMANYUX_HOME"
         python3 -m abhimanyux.platform.abhimanyux_platform "$2"
         ;;
     models)
@@ -158,7 +158,7 @@ case "$1" in
         ;;
     web)
         echo "Starting ABHIMANYU X Web Dashboard..."
-        cd "$SENTINELX_HOME"
+        cd "$ABHIMANYUX_HOME"
         python3 -m uvicorn api.server:app --host 0.0.0.0 --port 8000
         ;;
     *)
