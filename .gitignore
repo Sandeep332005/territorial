@@ -23,3 +23,5 @@ vulnerable_targets/*/replay_bin
 vulnerable_targets/*/_replay_scratch/
 
 .DS_Store
+.playwright-cli/
+docs/demo-explainer.mp4

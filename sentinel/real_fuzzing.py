@@ -54,16 +54,23 @@ def _vm(cmd: str, timeout: int = 30) -> subprocess.CompletedProcess:
 
 
 def replay_against_code(code: str, payload_size: int = None,
-                         target: str = "secure_packet_parser") -> Dict:
+                         target: str = "secure_packet_parser",
+                         sanitizers: str = "address") -> Dict:
     """Compile `code` as the target's source file + its real fuzz harness
-    with clang+ASan in the Linux VM, then execute a real input against it.
-    Real subprocess execution and real ASan output; not a canned result.
+    with clang+sanitizers in the Linux VM, then execute a real input against
+    it. Real subprocess execution and real sanitizer output; not a canned
+    result.
 
     payload_size: if given, generates a fresh all-'B' input of exactly that
     many bytes (for adversarial robustness testing across the boundary)
     instead of using the target's fixed AFL++-found crash input.
     target: key into TARGETS — which registered vulnerable application to
-    compile and replay against."""
+    compile and replay against.
+    sanitizers: clang -fsanitize= value, e.g. "address" (default, matches
+    the AFL++ crash-finding binary) or "undefined" (a separate,
+    independently-compiled UBSan-only check — trapping/aborting on
+    undefined behavior exercised by the given input, orthogonal to whether
+    that specific bug was originally an ASan-domain memory-safety issue)."""
     spec = TARGETS[target]
     target_dir = spec["dir"]
     scratch = target_dir / "_replay_scratch"
@@ -75,8 +82,10 @@ def replay_against_code(code: str, payload_size: int = None,
         (scratch / source_filename).write_text(code)
         (scratch / "fuzz_harness.c").write_text(harness_src.read_text())
 
+        recover_flag = " -fno-sanitize-recover=undefined" if "undefined" in sanitizers else ""
         compile_result = _vm(
-            f"cd {scratch} && clang-18 -g -fsanitize=address -o replay_bin fuzz_harness.c 2>&1"
+            f"cd {scratch} && clang-18 -g -fsanitize={sanitizers}{recover_flag} "
+            f"-o replay_bin fuzz_harness.c 2>&1"
         )
         if compile_result.returncode != 0:
             return {

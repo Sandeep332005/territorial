@@ -22,13 +22,21 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 
+# Checks the live mission actually depends on: real commit analysis (git),
+# the Colima VM sandbox (compile/exploit-replay/sanitizer runs happen
+# there), and a reachable local LLM (ANVIL). Everything else in the report
+# (node, cmake, host gcc/clang, the macOS ollama binary, qemu) is either
+# optional or checked purely for information — see system_report().
+_ESSENTIAL_CHECKS = {"git", "docker", "colima", "inference ready"}
+
+
 def cmd_doctor(args):
     from abhimanyux.sentinel.environment import system_report
     report = system_report()
     print(f"OS: {report['os']} {report['os_version']} ({report['arch']})")
     print(f"Python: {report['python_version']}")
     print()
-    ok, missing = 0, []
+    ok, missing, missing_essential = 0, [], []
     for c in report["checks"]:
         mark = "✓" if c["found"] else "○"
         line = f"  {mark} {c['name']}"
@@ -41,11 +49,18 @@ def cmd_doctor(args):
             ok += 1
         else:
             missing.append(c["name"])
+            if c["name"] in _ESSENTIAL_CHECKS:
+                missing_essential.append(c["name"])
     print()
     print(f"{ok}/{len(report['checks'])} checks passed.")
     if missing:
         print(f"Missing: {', '.join(missing)}")
     print(f"KVM: unavailable — {report['kvm_note']}")
+    print()
+    if not missing_essential:
+        print("SYSTEM READY")
+    else:
+        print(f"SYSTEM NOT READY — missing required: {', '.join(missing_essential)}")
     return 0
 
 
@@ -98,6 +113,42 @@ def cmd_environments(args):
     return 0
 
 
+DASHBOARD_URL = "http://127.0.0.1:5050"
+
+
+def _dashboard_reachable(url: str = DASHBOARD_URL, timeout: float = 1.5) -> bool:
+    """Real HTTP probe — no assumption the dashboard is running."""
+    import urllib.request
+    try:
+        urllib.request.urlopen(url, timeout=timeout)
+        return True
+    except Exception:
+        return False
+
+
+def _trigger_live_dashboard_mission(url: str = DASHBOARD_URL) -> bool:
+    """POST to the actually-running dashboard's own API so the live mission
+    it drives (and its WebSocket-connected browser view) is the SAME
+    mission this command reports on — not a separate, disconnected
+    standalone run that happens to share code. Returns True if the mission
+    was really started this way."""
+    import json
+    import urllib.request
+    try:
+        # Best-effort: clear any stale prior run first.
+        urllib.request.urlopen(
+            urllib.request.Request(f"{url}/api/sentinel/reset", method="POST"), timeout=3)
+    except Exception:
+        pass
+    try:
+        resp = urllib.request.urlopen(
+            urllib.request.Request(f"{url}/api/sentinel/start", method="POST"), timeout=3)
+        body = json.loads(resp.read().decode())
+        return body.get("status") == "started"
+    except Exception:
+        return False
+
+
 def _run_mission():
     from abhimanyux.core.orchestrator import AbhimanyuXCore
     from abhimanyux.anvil.engine import LLMConfig
@@ -118,6 +169,15 @@ def _run_mission():
 
 
 def cmd_mission(args):
+    if not getattr(args, "standalone", False) and _dashboard_reachable():
+        if _trigger_live_dashboard_mission():
+            print(f"Live dashboard mission started — watch {DASHBOARD_URL}")
+            return 0
+        print(f"Dashboard is running at {DASHBOARD_URL} but refused to start "
+              f"(a mission may already be in progress). Not falling back to a "
+              f"standalone run to avoid two missions racing on the same DB.")
+        return 1
+    print("Dashboard not reachable — running a standalone (terminal-only) mission.")
     _run_mission()
     return 0
 
@@ -149,7 +209,12 @@ def main():
 
     sub.add_parser("targets", help="List vulnerable-application catalog").set_defaults(func=cmd_targets)
     sub.add_parser("environments", help="List execution environments").set_defaults(func=cmd_environments)
-    sub.add_parser("mission", help="Run the full autonomous mission against secure_packet_parser").set_defaults(func=cmd_mission)
+    p_mission = sub.add_parser("mission", help="Run the full autonomous mission against secure_packet_parser "
+                                                "(controls the live web dashboard if one is running at "
+                                                f"{DASHBOARD_URL}, otherwise runs standalone in this terminal)")
+    p_mission.add_argument("--standalone", action="store_true",
+                            help="Always run standalone in this terminal, even if the dashboard is reachable")
+    p_mission.set_defaults(func=cmd_mission)
     sub.add_parser("transfer", help="Run the mission, then the real Immune Transfer experiment on target B").set_defaults(func=cmd_transfer)
 
     args = parser.parse_args()

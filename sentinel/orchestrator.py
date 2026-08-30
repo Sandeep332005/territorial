@@ -12,6 +12,12 @@ EXPLOIT_REPLAY is also real: it compiles the before/after code with
 clang+ASan inside the Colima Linux VM and executes each against the actual
 crash input a real AFL++ run found, via sentinel/real_fuzzing.py.
 
+UBSAN_CHECK is a second, independently-compiled real gate: the patched
+code is separately rebuilt with `-fsanitize=undefined
+-fno-sanitize-recover=undefined` and executed, so "UBSan clean" reflects an
+actual second compile+run under different instrumentation, not a relabeled
+copy of the ASan result.
+
 Deterministic-demo stage (fixed, clearly-labeled placeholder evidence):
 DYNAMIC_ANALYSIS's execution-count telemetry, and FUZZ's executions/sec and
 coverage-% figures — a real AFL++ 4.09c is installed and was used to find
@@ -207,6 +213,7 @@ class SentinelOrchestrator:
             verification = None
             patch = None
             exploit_blocked = False
+            ubsan_clean = False
             attempt_vuln = vuln
             for attempt in range(1, MAX_ATTEMPTS + 1):
                 if attempt > 1:
@@ -271,6 +278,16 @@ class SentinelOrchestrator:
                     89,
                 )
 
+                self._stage("UBSAN_CHECK",
+                             "Independent UndefinedBehaviorSanitizer compile+run (Colima VM)", 90)
+                after_ubsan = replay_against_code(patch.patched_code, sanitizers="undefined")
+                ubsan_clean = bool(after_ubsan.get("compiled")) and after_ubsan.get("crashed") is False
+                self.emit("ubsan_result", {
+                    "evidence_type": "measured",
+                    "after": after_ubsan,
+                    "ubsan_clean": ubsan_clean,
+                })
+
                 self._stage("REGRESSION", "Running regression tests", 92)
                 reg_passed = verification.regression_pass
                 self.metrics["regression_tests_total"] = 12
@@ -318,7 +335,8 @@ class SentinelOrchestrator:
                 "compiles": bool(verification and verification.compile_success),
                 "exploit_replay_blocked": exploit_blocked,
                 "regression": bool(verification and verification.regression_pass),
-                "sanitizer_clean": exploit_blocked,
+                "asan_clean": exploit_blocked,
+                "ubsan_clean": ubsan_clean,
                 "behaviour_preserved": bool(verification and verification.behavior_preserved),
             }
             trust_score = sum(1 for v in trust_gates.values() if v)
@@ -358,9 +376,15 @@ class SentinelOrchestrator:
                 self.core.memory.store_immune_record(vuln.id, patch.id, dna.id)
                 self.metrics["immune_records"] += 1
                 self._last_verified_vuln = vuln
+                # display_id: a real sequential count of immune records in
+                # this DB (SELECT COUNT(*) after the insert above), not a
+                # random or hardcoded number — dna.id (a content hash) stays
+                # the canonical lookup key.
+                record_count = self.core.memory.get_statistics()["total_immune_records"]
                 self.emit("immune_memory_created", {
                     "evidence_type": "measured",
                     "id": dna.id,
+                    "display_id": f"IMM-{record_count:05d}",
                     "vulnerability": vuln.title,
                     "cwe": vuln.cwe_id,
                     "pattern": "Untrusted length -> fixed-size buffer copy",
@@ -369,7 +393,7 @@ class SentinelOrchestrator:
             self.provenance["completed_at"] = datetime.now(timezone.utc).isoformat()
             self.provenance["environment"] = "Colima Linux VM (Ubuntu 24.04, aarch64) + macOS host"
             self.provenance["fuzzer"] = "AFL++ 4.09c (blind mode)"
-            self.provenance["sanitizer"] = "AddressSanitizer"
+            self.provenance["sanitizer"] = "AddressSanitizer + UndefinedBehaviorSanitizer"
             self.emit("provenance", {"evidence_type": "measured", **self.provenance})
 
             self._stage("COMPLETE", "ABHIMANYU X HAS LEARNED" if all_pass else
@@ -380,6 +404,7 @@ class SentinelOrchestrator:
                 "cwe": vuln.cwe_id,
                 "compile_success": verification.compile_success,
                 "exploit_blocked": exploit_blocked,
+                "ubsan_clean": ubsan_clean,
                 "regression_pass": verification.regression_pass,
                 "behaviour_preserved": verification.behavior_preserved,
                 "immune_memory_created": all_pass,
@@ -462,6 +487,19 @@ class SentinelOrchestrator:
             return
         vuln = findings[0]
         verifier = VerificationEngine()
+
+        # Real Immune Memory lookup — not a staged line, an actual query
+        # against the same DB the main mission just wrote to.
+        self.emit("transfer_progress", {"message": "Searching Immune Memory for prior "
+                                                     f"{vuln.vuln_type.value} patterns…"})
+        prior_matches = self.core.memory.search_by_type(vuln.vuln_type)
+        if prior_matches:
+            self.emit("transfer_progress", {
+                "message": f"MATCH FOUND — {len(prior_matches)} prior {vuln.vuln_type.value} "
+                           f"record(s) in Immune Memory (e.g. from Target A)"})
+        else:
+            self.emit("transfer_progress", {
+                "message": f"No prior {vuln.vuln_type.value} record — first occurrence of this class"})
 
         def _attempt(anvil_engine, label):
             patch = anvil_engine.analyze_and_patch(code, vuln)

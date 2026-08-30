@@ -27,56 +27,111 @@ None of this involves a "reasoning" system in the DARPA Cyber-Grand-Challenge se
 
 ## 🏗️ Architecture
 
+This is the real mission state machine (`sentinel/orchestrator.py`) that drives the live dashboard, not an idealized version — every box below corresponds to an actual named stage that emits a real WebSocket event, and the flow reads top to bottom in true execution order (REWIND → static → dynamic → fuzz run sequentially into one discovery verdict; they are not literally parallel).
+
 ```
-ABHIMANYU X CORE
-        │
-        ▼
-┌─────────────────────────────────────────┐
-│         LLM Patch-Generation Layer      │
-│   (local via Ollama, or a cloud API,    │
-│    configurable — default: a small      │
-│    local model, not a frontier model)   │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│      Vulnerability Discovery Layer      │
-│  ┌─────────────┐    ┌───────────────┐  │
-│  │   REWIND    │    │  FUZZ ENGINE  │  │
-│  │  (Static)   │    │  (Dynamic)    │  │
-│  └─────────────┘    └───────────────┘  │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│           ANVIL Repair Cell             │
-│      Root Cause Analysis                │
-│      Patch Generation + Self-Critique   │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│         Verification Cell               │
-│      Compile/Syntax Check               │
-│      Differential Re-Scan (exploit)     │
-│      Regression & Behavior Checks       │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│        Immune Memory Cell               │
-│      Vulnerability + Capability Atoms   │
-│      Fix Strategies                     │
-│      Confidence Feedback Loop           │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│          Watch Engine (optional)        │
-│      Polls for file changes             │
-│      Flags new / resolved / regressed   │
-└─────────────────────────────────────────┘
+                    ┌───────────────────────┐
+                    │   ABHIMANYU X CORE     │
+                    │   MISSION ENGINE       │
+                    │  (SentinelOrchestrator)│
+                    └───────────┬────────────┘
+                                │
+                    ┌───────────▼────────────┐
+                    │  COLIMA VM SANDBOX      │
+                    │  every compile/execute  │
+                    │  step below runs here — │
+                    │  never on the host      │
+                    └───────────┬────────────┘
+                                │
+                    ┌───────────▼────────────┐
+                    │      DISCOVERY          │
+                    │  REWIND (real, static)  │
+                    │  → STATIC_ANALYSIS      │
+                    │  → DYNAMIC_ANALYSIS*    │
+                    │  → FUZZ (AFL++, blind)* │
+                    └───────────┬────────────┘
+                                │
+                    ┌───────────▼────────────┐
+                    │   EVIDENCE BUNDLE       │
+                    │  static + dynamic +     │
+                    │  fuzz findings merged    │
+                    │  into one CWE verdict    │
+                    └───────────┬────────────┘
+                                │
+                    ┌───────────▼────────────┐
+                    │        ANVIL            │
+                    │  local LLM root-cause    │
+                    │  reasoning + patch draft │
+                    └───────────┬────────────┘
+                                │
+                    ┌───────────▼────────────┐
+                    │        FORGE            │
+                    │   PATCH → BUILD         │
+                    └───────────┬────────────┘
+                                │
+                    ┌───────────▼────────────┐
+                    │     VERIFICATION        │
+                    │  EXPLOIT_REPLAY (ASan)  │
+                    │  UBSAN_CHECK (UBSan)    │
+                    │  REGRESSION             │
+                    │  BEHAVIOUR_CHECK        │
+                    └───────────┬────────────┘
+                                │
+                   ┌────────────┴────────────┐
+                   ▼                         ▼
+                 FAIL                      PASS
+                   │                         │
+        back to ANVIL with the        PROOF-CARRYING PATCH
+        specific failure reason      (see scorecard below)
+        (GENERATE→TEST→FAIL→               │
+         REPAIR→RETEST, up to        ┌──────▼──────┐
+         2 attempts)                 │ IMMUNE DNA  │
+                                      │  (SQLite)   │
+                                      └──────┬──────┘
+                                             │
+                                      ┌──────▼──────┐
+                                      │  TRANSFER   │
+                                      │  (measured, │
+                                      │  with/without│
+                                      │  memory)    │
+                                      └──────┬──────┘
+                                             │
+                                      ┌──────▼──────┐
+                                      │  TARGET B   │
+                                      │  VERIFY     │
+                                      └─────────────┘
 ```
+\* `DYNAMIC_ANALYSIS`'s execution-count telemetry and `FUZZ`'s executions/sec + coverage-% figures are disclosed, clearly-labeled demo evidence, not measured — a real AFL++ 4.09c found the real crash these numbers describe, but its LLVM17 SanitizerCoverage pass doesn't correctly interact with ASan's redzones on this arm64/Ubuntu 24.04 toolchain (reproduced with a minimal, project-independent repro), so coverage-guided instrumentation isn't functional here. See `sentinel/real_fuzzing.py`.
+
+### 🛡️ Proof-Carrying Patch
+
+ABHIMANYU X doesn't hand back "an AI-generated patch" and ask you to trust it. Every accepted patch carries its own evidence, computed from real, independently-run gates (`sentinel/orchestrator.py`, `trust_gates`) — never asserted:
+
+```
+┌────────────────────────────────────┐
+│       PROOF-CARRYING PATCH          │
+├────────────────────────────────────┤
+│ Source Diff             ✓ measured  │
+│ Crash Reproduction      ✓ measured  │
+│ Build                   ✓ measured  │
+│ Regression               ✓ measured │
+│ ASan (clang+ASan)        ✓ measured │
+│ UBSan (clang+UBSan)      ✓ measured │
+│ Behaviour Preservation    ✓ measured│
+│ Adversarial Robustness    ✓ measured│
+│ Provenance (hashes, model, ✓ measured│
+│   commit, timestamps)               │
+├────────────────────────────────────┤
+│ STATUS: VERIFIED PATCH (8/8 gates)  │
+└────────────────────────────────────┘
+```
+
+Two things worth being precise about, because everything in this project is meant to be checkable, not just claimed:
+
+- **ASan and UBSan are two separately compiled, separately executed binaries**, not one build relabeled twice (`replay_against_code(..., sanitizers="address")` vs `sanitizers="undefined"`, `-fno-sanitize-recover=undefined` so a UBSan trap is a real nonzero exit). They catch different bug classes — on this project's actual demo vulnerability (a stack-buffer-overflow via `memcpy`), ASan correctly flags it and UBSan correctly does not, because it isn't a UBSan-domain bug. "UBSan clean" means the patched binary ran clean under UBSan instrumentation, not that UBSan is what caught this particular bug.
+- **Regression/behaviour checks are structural for C**, not full compile-and-execute smoke tests (function-presence and size-delta checks) — running arbitrary AI-generated C automatically as a smoke test would itself be a risk. Python targets get a real import-and-run check. This is disclosed, not smoothed over.
+
+The verified evidence — not just the patch — is what gets written into Immune Memory, and what the Transfer experiment measures propagating to a second, unrelated target.
 
 ## 🚀 Quick Start
 
@@ -245,6 +300,8 @@ Staged, evidence-based checks — an earlier failed stage skips the rest rather 
 - Exploit verification via a **differential re-scan**: confirms REWIND's rule fires on the original code and no longer fires on the patch — not a real dynamic exploit attempt
 - Regression check (Python: imports and runs the patched module; C: structural function-presence check only — does not compile-and-execute C as a smoke test, since running arbitrary AI-generated C would itself be a risk)
 - Behavior-preservation check (AST diff for Python; function-set + size-delta heuristic for C)
+
+The live Judge-Mode mission (`sentinel/orchestrator.py`) goes further for the C demo targets: on top of the checks above, it does a **real dynamic exploit replay** — the actual AFL++-found crash input executed against a real clang+ASan compile of the patch inside the Colima VM — plus a second, independently-compiled clang+UBSan run. See [Proof-Carrying Patch](#-proof-carrying-patch) above for the full evidence set and what each gate actually measures.
 
 ### Immune Memory
 

@@ -434,6 +434,11 @@ DASHBOARD_HTML = """
             <div class="stage-pill" data-group="repair"><span class="mark">○</span>REPAIR</div>
             <div class="stage-pill" data-group="verify"><span class="mark">○</span>VERIFY</div>
             <div class="stage-pill" data-group="remember"><span class="mark">○</span>REMEMBER</div>
+            <div class="stage-pill" data-group="transfer"><span class="mark">○</span>TRANSFER</div>
+        </div>
+        <div id="missionFinalBanner" style="display:none; margin-top:14px; padding:16px; text-align:center; border:1px solid var(--cyan); border-radius:8px; background:var(--panel-2);">
+            <div style="font-size:20px; font-weight:800; letter-spacing:.08em; color:var(--cyan); text-shadow:0 0 12px rgba(45,226,201,.6);">ABHIMANYU X</div>
+            <div style="font-size:12px; letter-spacing:.12em; color:var(--text-dim); margin-top:4px;">READY FOR THE NEXT THREAT</div>
         </div>
         <div class="controls">
             <button class="btn btn-primary" id="btnStart">▶ Start Autonomous Demo</button>
@@ -594,7 +599,8 @@ DASHBOARD_HTML = """
         </div>
 
         <div class="panel empty" id="panel-patch">
-            <h2>Patch Laboratory <span class="badge badge-ai">AI-generated</span></h2>
+            <h2>Patch Laboratory <span class="badge badge-ai">AI-generated</span>
+                <span class="badge badge-measured" id="patch-attempt" style="display:none;"></span></h2>
             <pre class="code" id="patch-diff">Awaiting patch…</pre>
             <div class="controls" style="margin-top:10px;">
                 <button class="btn btn-danger" id="btnReject">Reject Patch</button>
@@ -828,16 +834,16 @@ const STAGE_GROUPS = {
     INIT:'discover', INGEST:'discover', REWIND:'discover', STATIC_ANALYSIS:'discover',
     DYNAMIC_ANALYSIS:'understand', FUZZ:'understand', DISCOVERY:'understand', ANALYZE:'understand',
     PATCH:'repair', BUILD:'repair',
-    EXPLOIT_REPLAY:'verify', REGRESSION:'verify', BEHAVIOUR_CHECK:'verify',
+    EXPLOIT_REPLAY:'verify', UBSAN_CHECK:'verify', REGRESSION:'verify', BEHAVIOUR_CHECK:'verify',
     MEMORY_COMMIT:'remember', COMPLETE:'remember',
 };
 const CELL_FOR_STAGE = {
     INGEST:'repository', REWIND:'rewind', STATIC_ANALYSIS:'static', DYNAMIC_ANALYSIS:'dynamic',
     FUZZ:'fuzz', DISCOVERY:'vuln', ANALYZE:'anvil', PATCH:'patch', BUILD:'verify',
-    EXPLOIT_REPLAY:'verify', REGRESSION:'verify', BEHAVIOUR_CHECK:'verify', MEMORY_COMMIT:'memory',
+    EXPLOIT_REPLAY:'verify', UBSAN_CHECK:'verify', REGRESSION:'verify', BEHAVIOUR_CHECK:'verify', MEMORY_COMMIT:'memory',
 };
 let doneGroups = new Set();
-let sequenceOrder = ['discover','understand','repair','verify','remember'];
+let sequenceOrder = ['discover','understand','repair','verify','remember','transfer'];
 
 function setStatus(text, active) {
     document.getElementById('ms-status').innerHTML =
@@ -901,7 +907,15 @@ socket.on('demo_state', d => {
     document.getElementById('btnPause').disabled = (d.state !== 'RUNNING');
     document.getElementById('btnResume').disabled = (d.state !== 'PAUSED');
     document.getElementById('btnFuture').disabled = (d.state !== 'COMPLETE');
-    if (d.state === 'IDLE' && window.SentinelScene) window.SentinelScene.reset();
+    if (d.state === 'IDLE') {
+        if (window.SentinelScene) window.SentinelScene.reset();
+        doneGroups = new Set();
+        document.querySelectorAll('.stage-pill').forEach(pill => {
+            pill.classList.remove('active','done');
+            pill.querySelector('.mark').textContent = '○';
+        });
+        document.getElementById('missionFinalBanner').style.display = 'none';
+    }
 });
 
 socket.on('stage_update', d => {
@@ -1046,6 +1060,9 @@ socket.on('patch_result', d => {
     document.getElementById('panel-patch').classList.remove('empty');
     document.getElementById('patch-diff').textContent = d.patched_code;
     document.getElementById('patch-note').textContent = '';
+    const attemptEl = document.getElementById('patch-attempt');
+    attemptEl.textContent = 'ATTEMPT #' + d.attempt;
+    attemptEl.style.display = 'inline';
     markCellDone('patch');
 });
 
@@ -1087,7 +1104,8 @@ socket.on('behaviour_result', d => {
 socket.on('immune_memory_created', d => {
     document.getElementById('panel-memory').classList.remove('empty');
     document.getElementById('im-kv').innerHTML =
-        '<div class="k">ID</div><div class="v">' + d.id + '</div>' +
+        '<div class="k">ID</div><div class="v">' + (d.display_id || d.id) + '</div>' +
+        '<div class="k">DNA hash</div><div class="v" style="word-break:break-all;">' + d.id + '</div>' +
         '<div class="k">Vulnerability</div><div class="v">' + d.vulnerability + '</div>' +
         '<div class="k">CWE</div><div class="v">' + d.cwe + '</div>' +
         '<div class="k">Pattern</div><div class="v">' + d.pattern + '</div>';
@@ -1209,6 +1227,21 @@ socket.on('transfer_result', d => {
     document.getElementById('transfer-result').innerHTML =
         '<div style="font-size:11px; color:var(--text-dim); margin-bottom:8px;">' + d.note + ' Target: ' + d.target + ' — ' + d.vulnerability + '</div>' +
         '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' + row(d.without_memory) + row(d.with_memory) + '</div>';
+
+    // TRANSFER is its own pill, driven by this event rather than
+    // stage_update, since the transfer experiment is a separate real run
+    // against Target B, not a stage inside run_full_demo(). Getting here
+    // at all means the main mission's last group ('remember') is done too
+    // — markStage() only ever marks groups *before* the current one, so
+    // 'remember' itself never lands in doneGroups on its own; add the
+    // whole sequence explicitly rather than relying on that.
+    sequenceOrder.forEach(g => doneGroups.add(g));
+    document.querySelectorAll('.stage-pill').forEach(pill => {
+        pill.classList.remove('active');
+        pill.classList.add('done');
+        pill.querySelector('.mark').textContent = '✓';
+    });
+    document.getElementById('missionFinalBanner').style.display = 'block';
 });
 document.getElementById('btnReplay').addEventListener('click', () => {
     document.getElementById('panel-verify').scrollIntoView({behavior:'smooth', block:'center'});
