@@ -19,11 +19,11 @@ mkdir -p "$TARGET_DIR"
 cd "$TARGET_DIR"
 git init -q
 git config user.email "sentinel@local"
-git config user.name "SENTINEL-X Demo"
+git config user.name "ABHIMANYU X Demo"
 
 cat > parser.c << 'EOF'
 /*
- * secure_packet_parser — demo target for SENTINEL-X CORE
+ * secure_packet_parser — demo target for ABHIMANYU X
  * Educational, intentionally-controlled vulnerability for hackathon demo.
  */
 #include <string.h>
@@ -85,7 +85,7 @@ git commit -q -m "Initial secure packet parser with bounds-checked length valida
 # Introduce the vulnerability as a second commit — this is what REWIND analyzes.
 cat > parser.c << 'EOF'
 /*
- * secure_packet_parser — demo target for SENTINEL-X CORE
+ * secure_packet_parser — demo target for ABHIMANYU X
  * Educational, intentionally-controlled vulnerability for hackathon demo.
  */
 #include <string.h>

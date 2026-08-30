@@ -36,10 +36,14 @@ def _vm(cmd: str, timeout: int = 30) -> subprocess.CompletedProcess:
     )
 
 
-def replay_against_code(code: str) -> Dict:
+def replay_against_code(code: str, payload_size: int = None) -> Dict:
     """Compile `code` as parser.c + the real fuzz harness with clang+ASan in
-    the Linux VM, then execute the real AFL++-found crash input against it.
-    Real subprocess execution and real ASan output; not a canned result."""
+    the Linux VM, then execute a real input against it. Real subprocess
+    execution and real ASan output; not a canned result.
+
+    payload_size: if given, generates a fresh all-'B' input of exactly that
+    many bytes (for adversarial robustness testing across the boundary)
+    instead of using the fixed AFL++-found crash-00017.bin."""
     try:
         SCRATCH.mkdir(exist_ok=True)
         (SCRATCH / "parser.c").write_text(code)
@@ -56,7 +60,13 @@ def replay_against_code(code: str) -> Dict:
                 "output": compile_result.stdout[-2000:],
             }
 
-        run_result = _vm(f"cd {SCRATCH} && ./replay_bin {CRASH_INPUT} 2>&1")
+        if payload_size is not None:
+            input_path = SCRATCH / f"input_{payload_size}.bin"
+            input_path.write_bytes(b"B" * payload_size)
+        else:
+            input_path = CRASH_INPUT
+
+        run_result = _vm(f"cd {SCRATCH} && ./replay_bin {input_path} 2>&1")
         crashed = run_result.returncode != 0
         return {
             "evidence_type": "measured",

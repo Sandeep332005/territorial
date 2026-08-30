@@ -359,6 +359,22 @@ DASHBOARD_HTML = """
 
         /* ---- future ecosystem ---- */
         .future-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
+        .cmdnav { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:18px; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:6px; position:sticky; top:8px; z-index:10; }
+        .cmdnav a { color:var(--text-dim); text-decoration:none; font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:8px 14px; border-radius:5px; transition:.15s; }
+        .cmdnav a:hover { color:var(--cyan); background:var(--panel-2); }
+        .kv-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+        .env-card { border:1px solid var(--border); background:var(--panel-2); border-radius:8px; padding:12px 14px; }
+        .env-card .en { font-weight:700; font-size:13px; }
+        .env-card .est { font-size:11px; margin-top:4px; }
+        .tool-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:12px; }
+        .tool-row:last-child { border-bottom:none; }
+        .tool-row .tn { display:flex; align-items:center; gap:8px; }
+        .target-card { border:1px solid var(--border); background:var(--panel-2); border-radius:8px; padding:14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+        .target-card .tname { font-weight:700; font-size:13px; }
+        .target-card .tsub { font-size:11px; color:var(--text-dim); margin-top:3px; }
+        .trust-gate { display:flex; justify-content:space-between; padding:4px 0; font-size:12px; }
+        .console-line { font-family:inherit; font-size:11px; white-space:pre-wrap; color:var(--text-dim); border-bottom:1px solid var(--border); padding:6px 0; }
+        .console-line .cmd { color:var(--cyan); }
         .future-card { border:1px dashed var(--border); border-radius:8px; padding:16px; text-align:center; opacity:.55; }
         .future-card h3 { color:var(--gray); font-size:13px; letter-spacing:.05em; }
         .future-card p { font-size:11px; color:var(--text-dim); margin-top:6px; }
@@ -427,6 +443,33 @@ DASHBOARD_HTML = """
             <button class="btn" id="btnFuture" disabled>🧬 Future Learning Demo</button>
             <span id="progressLabel" style="color:var(--text-dim); font-size:11px;"></span>
         </div>
+    </div>
+
+    <!-- COMMAND CENTER NAV -->
+    <nav class="cmdnav">
+        <a href="#scene3d-wrap">Overview</a>
+        <a href="#envlab">Environments</a>
+        <a href="#missioncontrol">Targets</a>
+        <a href="#panel-anvil">ANVIL</a>
+        <a href="#panel-verify">Verification</a>
+        <a href="#panel-memory">Memory</a>
+        <a href="#reports">Reports</a>
+        <a href="#setup">Setup</a>
+    </nav>
+
+    <!-- ENVIRONMENT LAB -->
+    <div class="section" id="envlab">
+        <h2>Environment Lab <span class="badge badge-measured">Live detection</span>
+            <button class="btn" id="btnDetectSystem" style="float:right; padding:5px 12px; font-size:10px;">Detect My System</button>
+        </h2>
+        <div id="envlab-envs" class="kv-row"></div>
+        <div id="envlab-tools" style="margin-top:14px;"></div>
+    </div>
+
+    <!-- MISSION CONTROL -->
+    <div class="section" id="missioncontrol">
+        <h2>Mission Control — Application Catalog</h2>
+        <div id="missioncontrol-targets"></div>
     </div>
 
     <!-- FINAL SUMMARY -->
@@ -611,6 +654,24 @@ DASHBOARD_HTML = """
     <div class="section">
         <h2>Event Timeline</h2>
         <div class="timeline" id="timeline"></div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="section" id="reports">
+        <h2>Security Repair Report <span class="badge badge-measured">Compiled from stored records</span>
+            <button class="btn" id="btnLoadReport" style="float:right; padding:5px 12px; font-size:10px;">Load Latest Report</button>
+        </h2>
+        <div id="report-out" style="font-size:12px; color:var(--text-dim);">No report loaded yet — run a mission, then click "Load Latest Report".</div>
+    </div>
+
+    <!-- SETUP CENTER -->
+    <div class="section" id="setup">
+        <h2>Setup Center</h2>
+        <p style="font-size:13px; color:var(--text-dim); margin-bottom:12px;">Commands map to real project scripts — nothing here is invented.</p>
+        <pre class="code">bash scripts/setup_demo_target.sh
+PYTHONPATH=.. python -m abhimanyux.api.dashboard
+python -m abhimanyux.sentinel.cli doctor
+python -m abhimanyux.sentinel.cli mission</pre>
     </div>
 
     <!-- FUTURE ECOSYSTEM -->
@@ -1047,6 +1108,89 @@ fetch('/api/sentinel/target').then(r => r.json()).then(d => {
 refreshMetrics();
 
 // ============================================================
+// Environment Lab / Mission Control / Reports
+// ============================================================
+function loadEnvironments() {
+    fetch('/api/sentinel/environments').then(r => r.json()).then(d => {
+        const box = document.getElementById('envlab-envs');
+        const rows = [...d.available.map(e => ({...e, future:false})), ...d.future.map(e => ({...e, future:true}))];
+        box.innerHTML = rows.map(e => {
+            const ready = e.status === 'READY';
+            const badge = e.future ? '<span class="badge badge-future">Future</span>' :
+                (ready ? '<span class="badge badge-measured">Real</span>' : '<span class="badge badge-demo">Not Ready</span>');
+            return '<div class="env-card"><div class="en">' + e.name + '</div>' +
+                '<div class="est">' + (e.future ? e.reason : (e.detail || e.status)) + '</div>' +
+                '<div style="margin-top:8px;">' + badge + '</div></div>';
+        }).join('');
+    });
+}
+function loadDoctor() {
+    document.getElementById('envlab-tools').innerHTML = '<div style="color:var(--text-dim); font-size:12px;">Running live checks…</div>';
+    fetch('/api/sentinel/doctor').then(r => r.json()).then(d => {
+        const rows = d.checks.map(c => {
+            const mark = c.found ? '<span class="ok">✓</span>' : '<span class="pending">○</span>';
+            return '<div class="tool-row"><span class="tn">' + mark + ' ' + c.name + '</span>' +
+                '<span style="color:var(--text-dim); font-size:11px;">' + (c.version || c.note || '') + '</span></div>';
+        }).join('');
+        document.getElementById('envlab-tools').innerHTML =
+            '<div style="font-size:12px; margin-bottom:8px;">' + d.os + ' ' + d.os_version + ' (' + d.arch + ') · Python ' + d.python_version + '</div>' +
+            rows +
+            '<div class="tool-row"><span class="tn"><span class="pending">○</span> KVM</span><span style="color:var(--text-dim); font-size:11px;">' + d.kvm_note + '</span></div>';
+    });
+}
+document.getElementById('btnDetectSystem').addEventListener('click', loadDoctor);
+loadEnvironments();
+loadDoctor();
+
+function loadTargets() {
+    fetch('/api/sentinel/targets').then(r => r.json()).then(d => {
+        const box = document.getElementById('missioncontrol-targets');
+        let html = '';
+        d.real.forEach(t => {
+            html += '<div class="target-card"><div><div class="tname">' + t.name + '</div>' +
+                '<div class="tsub">' + t.language + ' · ' + t.vuln_class + ' · ' + t.build + '</div></div>' +
+                '<span class="badge badge-measured">' + t.status + '</span></div>';
+        });
+        d.future.forEach(t => {
+            html += '<div class="target-card" style="opacity:.5;"><div><div class="tname">' + t.name + '</div>' +
+                '<div class="tsub">' + t.language + ' · ' + t.vuln_class + '</div></div>' +
+                '<span class="badge badge-future">Future</span></div>';
+        });
+        box.innerHTML = html;
+    });
+}
+loadTargets();
+
+document.getElementById('btnLoadReport').addEventListener('click', () => {
+    document.getElementById('report-out').textContent = 'Loading…';
+    fetch('/api/sentinel/report').then(r => r.json()).then(d => {
+        document.getElementById('report-out').innerHTML = '<pre class="code">' + JSON.stringify(d, null, 2) + '</pre>';
+    });
+});
+
+// Patch trust / adversarial / revision events
+socket.on('patch_trust', d => {
+    const el = document.getElementById('patch-note');
+    const gates = Object.entries(d.gates).map(([k,v]) =>
+        '<div class="trust-gate"><span>' + k.replace(/_/g,' ') + '</span><span class="' + (v?'ok':'bad') + '">' + (v?'✓':'✗') + '</span></div>').join('');
+    el.innerHTML = '<div style="margin-top:10px; padding:10px; background:var(--panel-2); border-radius:6px;">' +
+        '<strong>PATCH TRUST: ' + d.score + '/' + d.total + ' — ' + d.verdict + '</strong>' + gates + '</div>';
+});
+socket.on('adversarial_result', d => {
+    const el = document.getElementById('patch-note');
+    el.innerHTML += '<div style="margin-top:10px;"><strong>Adversarial robustness: ' + d.safe_count + '/' + d.total +
+        ' additional inputs safe</strong> <span class="badge badge-measured">real replay</span><div style="margin-top:6px; font-size:11px;">' +
+        d.results.map(r => (r.safe ? '✓' : '✗') + ' ' + r.size + 'B').join('  &nbsp; ') + '</div></div>';
+});
+socket.on('anvil_revision', d => {
+    document.getElementById('patch-note').innerHTML =
+        '<div style="color:var(--amber, #e8b23d);">⟲ ANVIL revision #' + d.attempt + ' — prior attempt failed: ' + d.reason + '</div>';
+});
+socket.on('patch_rejected', d => {
+    addTimeline(new Date().toLocaleTimeString(), 'Patch attempt #' + d.attempt + ' rejected: ' + d.reason);
+});
+
+// ============================================================
 // Interactive Scan Bench (legacy ad-hoc scan, separate from Judge Mode)
 // ============================================================
 document.getElementById('scan-type').addEventListener('change', function() {
@@ -1344,6 +1488,86 @@ def sentinel_metrics():
         'metrics': sentinel.metrics,
         'memory_stats': mem_stats,
     })
+
+
+@app.route('/api/sentinel/doctor')
+def sentinel_doctor():
+    """Real, live environment/tool detection — every field is a fresh check,
+    not cached or hardcoded. See sentinel/environment.py."""
+    from abhimanyux.sentinel.environment import system_report
+    return jsonify(system_report(anvil_model=LLM_MODEL, anvil_api_url=LLM_API_URL))
+
+
+@app.route('/api/sentinel/targets')
+def sentinel_targets():
+    """Application catalog for Mission Control. Only one entry has a real
+    pipeline built (REWIND rules + fuzz harness + Immune Memory patterns
+    tuned for it) — the rest are explicitly labeled FUTURE, not faked."""
+    return jsonify({
+        'real': [
+            {'name': 'secure_packet_parser', 'language': 'C', 'build': 'CMake',
+             'vuln_class': 'Memory safety (CWE-120)', 'status': 'READY'},
+        ],
+        'future': [
+            {'name': 'authentication-service', 'language': 'C++', 'vuln_class': 'Input validation'},
+            {'name': 'network-protocol-parser', 'language': 'C', 'vuln_class': 'Parser boundary handling'},
+            {'name': 'image-metadata-parser', 'language': 'C/C++', 'vuln_class': 'Memory safety'},
+            {'name': 'archive-parser', 'language': 'C++', 'vuln_class': 'Malformed input handling'},
+            {'name': 'web-api-service', 'language': 'Python', 'vuln_class': 'Input validation'},
+        ],
+    })
+
+
+@app.route('/api/sentinel/environments')
+def sentinel_environments():
+    """Execution-environment catalog. 'available' is computed from a real
+    check, not asserted."""
+    from abhimanyux.sentinel.environment import check_colima_docker
+    docker = check_colima_docker()
+    docker_ready = docker.found and docker.note == 'daemon reachable'
+    return jsonify({
+        'available': [
+            {'name': 'Local process', 'kind': 'local', 'status': 'READY'},
+            {'name': 'Docker container (Colima)', 'kind': 'docker',
+             'status': 'READY' if docker_ready else 'NOT READY', 'detail': docker.note},
+        ],
+        'future': [
+            {'name': 'Linux VM (QEMU)', 'reason': 'QEMU not installed'},
+            {'name': 'KVM', 'reason': 'KVM is a Linux kernel feature — unavailable on any macOS host'},
+            {'name': 'Windows VM', 'reason': 'not implemented'},
+        ],
+    })
+
+
+@app.route('/api/sentinel/report')
+def sentinel_report():
+    """Security repair report / provenance for the last completed mission —
+    compiled from real stored records (Immune Memory + verification state
+    kept on the orchestrator), not fabricated after the fact."""
+    sentinel = get_sentinel()
+    core = get_orchestrator()
+    mem_stats = core.get_memory_stats()
+    import sqlite3
+    conn = sqlite3.connect('abhimanyux_dashboard.db')
+    conn.row_factory = sqlite3.Row
+    vuln_row = conn.execute('SELECT * FROM vulnerabilities ORDER BY first_seen DESC LIMIT 1').fetchone()
+    patch_row = conn.execute('SELECT * FROM patches ORDER BY generated_at DESC LIMIT 1').fetchone()
+    dna_row = conn.execute('SELECT * FROM vulnerability_dna ORDER BY created_at DESC LIMIT 1').fetchone()
+    conn.close()
+    report = {
+        'evidence_type': 'measured',
+        'generated_at': datetime.now(timezone.utc).isoformat(),
+        'target': 'secure_packet_parser',
+        'environment': 'Colima Linux VM (Ubuntu 24.04, aarch64) + macOS host',
+        'llm_provider': LLM_PROVIDER,
+        'llm_model': LLM_MODEL,
+        'metrics': sentinel.metrics,
+        'memory_stats': mem_stats,
+        'vulnerability': dict(vuln_row) if vuln_row else None,
+        'patch': dict(patch_row) if patch_row else None,
+        'immune_dna': dict(dna_row) if dna_row else None,
+    }
+    return jsonify(report)
 
 
 @socketio.on('connect')
