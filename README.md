@@ -110,6 +110,10 @@ This is the real mission state machine (`sentinel/orchestrator.py`) that drives 
 ```
 \* `DYNAMIC_ANALYSIS`'s execution-count telemetry and `FUZZ`'s executions/sec + coverage-% figures are disclosed, clearly-labeled demo evidence, not measured — a real AFL++ 4.09c found the real crash these numbers describe, but its LLVM17 SanitizerCoverage pass doesn't correctly interact with ASan's redzones on this arm64/Ubuntu 24.04 toolchain (reproduced with a minimal, project-independent repro), so coverage-guided instrumentation isn't functional here. See `sentinel/real_fuzzing.py`.
 
+![ABHIMANYU X — mission flow (left) next to the real dashboard's own panels (right) at each stage: idle, discovery evidence, ANVIL reasoning, patch + trust score, verification chamber, immune memory, transfer experiment, and the closing banner](docs/flow-demo.gif)
+
+*Left side is the flow diagram; right side is real UI content from an actual run — the exact same `.stage-pill` component the live dashboard uses, screenshotted per stage, not hand-drawn. No panel shown out of the state it was actually captured in.*
+
 <a id="proof-carrying-patch"></a>
 ### 🛡️ Proof-Carrying Patch
 
