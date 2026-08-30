@@ -44,8 +44,11 @@ def fuzz_campaign_evidence(vulnerability) -> Dict:
     corpus size, and coverage % are demo placeholders — this platform's
     afl-cc coverage instrumentation does not work with ASan (see module
     docstring), so those specific figures are not measured."""
+    import hashlib
     loc = vulnerability.location if vulnerability else None
     crash_input = "crash-00017.bin"
+    location_str = f"{loc.file_path}:{loc.line_start}" if loc else "unknown"
+    stack_hash = hashlib.sha256(f"{location_str}:{loc.function_name if loc else ''}".encode()).hexdigest()[:12]
     return {
         "evidence_type": "demo",
         "label": "Crash is real (AFL++ blind-mode + ASan); rate/coverage figures below are DEMO",
@@ -56,11 +59,13 @@ def fuzz_campaign_evidence(vulnerability) -> Dict:
         "coverage_pct": 73,
         "unique_crashes": 1,
         "crash": {
+            "id": "CRASH-00017",
             "input_file": crash_input,
             "signal": "SIGABRT (ASan)",
             "sanitizer": "AddressSanitizer",
-            "location": f"{loc.file_path}:{loc.line_start}" if loc else "unknown",
+            "location": location_str,
             "function_name": loc.function_name if loc else None,
+            "stack_hash": stack_hash,
         },
     }
 

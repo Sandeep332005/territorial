@@ -73,12 +73,12 @@ def cmd_scan(args):
 
 def cmd_targets(args):
     print("REAL / MEASURED:")
-    print("  secure_packet_parser   C     Memory safety (CWE-120 memcpy overflow)")
+    print("  secure_packet_parser      C     Memory safety (CWE-120 memcpy overflow) — Target A")
+    print("  network_protocol_parser   C     Memory safety (CWE-120 memcpy overflow) — Target B, Immune Transfer")
     print()
     print("FUTURE (catalog entries, no real pipeline built yet):")
     for name, lang, cls in [
         ("authentication-service", "C++", "Input validation"),
-        ("network-protocol-parser", "C", "Parser boundary handling"),
         ("image-metadata-parser", "C/C++", "Memory safety"),
         ("archive-parser", "C++", "Malformed input handling"),
         ("web-api-service", "Python", "Input validation"),
@@ -98,7 +98,7 @@ def cmd_environments(args):
     return 0
 
 
-def cmd_mission(args):
+def _run_mission():
     from abhimanyux.core.orchestrator import AbhimanyuXCore
     from abhimanyux.anvil.engine import LLMConfig
     from abhimanyux.sentinel.orchestrator import SentinelOrchestrator
@@ -114,6 +114,26 @@ def cmd_mission(args):
     )
     orch = SentinelOrchestrator(core, emit)
     orch.run_full_demo()
+    return orch, core
+
+
+def cmd_mission(args):
+    _run_mission()
+    return 0
+
+
+def cmd_transfer(args):
+    import json as _json
+    orch, core = _run_mission()
+    print()
+    print("=== IMMUNE TRANSFER EXPERIMENT (target B: network_protocol_parser) ===")
+
+    def emit(name, payload):
+        if name in ("transfer_progress", "transfer_result"):
+            print(payload.get("message") or _json.dumps(payload, indent=2))
+
+    orch.emit = emit
+    orch.run_transfer_experiment()
     return 0
 
 
@@ -130,6 +150,7 @@ def main():
     sub.add_parser("targets", help="List vulnerable-application catalog").set_defaults(func=cmd_targets)
     sub.add_parser("environments", help="List execution environments").set_defaults(func=cmd_environments)
     sub.add_parser("mission", help="Run the full autonomous mission against secure_packet_parser").set_defaults(func=cmd_mission)
+    sub.add_parser("transfer", help="Run the mission, then the real Immune Transfer experiment on target B").set_defaults(func=cmd_transfer)
 
     args = parser.parse_args()
     sys.exit(args.func(args))

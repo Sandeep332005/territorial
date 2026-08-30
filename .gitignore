@@ -10,8 +10,10 @@ abhimanyux_report_*.json
 iso/build/
 iso/output/
 
-# Demo target: has its own nested git repo, recreated by scripts/setup_demo_target.sh
+# Demo targets: each has its own nested git repo, recreated by
+# scripts/setup_demo_target.sh and scripts/setup_target_b.sh
 vulnerable_targets/secure_packet_parser/
+vulnerable_targets/network_protocol_parser/
 vulnerable_targets/*.o
 vulnerable_targets/*/*.bin
 vulnerable_targets/*/vulnerable

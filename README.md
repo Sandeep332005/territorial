@@ -153,10 +153,11 @@ A 3D "cyber immune laboratory" UI for watching one vulnerability travel the
 full lifecycle (REWIND → discovery → ANVIL reasoning → patch → verification
 → Immune Memory), plus an ad-hoc scan bench for arbitrary code.
 
-One-time setup (recreates the demo target's git history + fuzz corpus):
+One-time setup (recreates both demo targets' git history + fuzz corpus):
 
 ```bash
-bash scripts/setup_demo_target.sh
+bash scripts/setup_demo_target.sh   # Target A: secure_packet_parser
+bash scripts/setup_target_b.sh      # Target B: network_protocol_parser (Immune Transfer)
 ```
 
 Run it (from this repo's parent directory, so `abhimanyux` resolves as a package):
@@ -166,7 +167,15 @@ PYTHONPATH=.. python -m abhimanyux.api.dashboard
 # Opens at http://localhost:5050
 ```
 
-- `/` — the live 3D laboratory + Judge Mode ("Start Autonomous Demo") + interactive scan bench
+Or from the CLI:
+
+```bash
+PYTHONPATH=.. python -m abhimanyux.sentinel.cli doctor      # real environment/tool check
+PYTHONPATH=.. python -m abhimanyux.sentinel.cli mission      # full autonomous mission, target A
+PYTHONPATH=.. python -m abhimanyux.sentinel.cli transfer     # mission + real Immune Transfer experiment on target B
+```
+
+- `/` — the live 3D laboratory + Judge Mode ("Start Autonomous Demo") + interactive scan bench + Immune Transfer experiment
 - `/case-file` — a static write-up of one real captured run
 
 By default ANVIL calls a local Ollama model (`qwen2.5-coder:3b` at

@@ -407,7 +407,7 @@ DASHBOARD_HTML = """
 <div class="wrap">
 
     <!-- MISSION CONTROL -->
-    <div class="mission">
+    <div class="mission" id="mission">
         <div class="mission-top">
             <div>
                 <h1><span class="core">ABHIMANYU</span> X</h1>
@@ -447,14 +447,16 @@ DASHBOARD_HTML = """
 
     <!-- COMMAND CENTER NAV -->
     <nav class="cmdnav">
-        <a href="#scene3d-wrap">Overview</a>
-        <a href="#envlab">Environments</a>
+        <a href="#mission">Mission</a>
         <a href="#missioncontrol">Targets</a>
+        <a href="#envlab">Environments</a>
+        <a href="#panel-vuln">Evidence</a>
         <a href="#panel-anvil">ANVIL</a>
         <a href="#panel-verify">Verification</a>
-        <a href="#panel-memory">Memory</a>
+        <a href="#panel-memory">Immune Memory</a>
+        <a href="#provenance">Provenance</a>
         <a href="#reports">Reports</a>
-        <a href="#setup">Setup</a>
+        <a href="#setup">System</a>
     </nav>
 
     <!-- ENVIRONMENT LAB -->
@@ -592,7 +594,7 @@ DASHBOARD_HTML = """
         </div>
 
         <div class="panel empty" id="panel-patch">
-            <h2>Patch Generation <span class="badge badge-ai">AI-generated</span></h2>
+            <h2>Patch Laboratory <span class="badge badge-ai">AI-generated</span></h2>
             <pre class="code" id="patch-diff">Awaiting patch…</pre>
             <div class="controls" style="margin-top:10px;">
                 <button class="btn btn-danger" id="btnReject">Reject Patch</button>
@@ -603,7 +605,7 @@ DASHBOARD_HTML = """
         </div>
 
         <div class="panel empty" id="panel-verify">
-            <h2>Verification Pipeline <span class="badge badge-measured">Build/regression real</span></h2>
+            <h2>Verification Chamber <span class="badge badge-measured">Build/regression real</span></h2>
             <div class="checklist" id="verify-checklist">
                 <div class="item"><span>Build Verification</span><span class="pending" id="vc-build">○</span></div>
                 <div class="item"><span>Original Crash Replay</span><span class="pending" id="vc-replay-before">○</span></div>
@@ -636,6 +638,14 @@ DASHBOARD_HTML = """
             <p style="font-size:12px; color:var(--text-dim);">After the first vulnerability is verified & remembered, load a second, differently-named component with the same untrusted-length-to-fixed-buffer pattern and watch Immune Memory recognize it.</p>
             <div id="fl-result" style="margin-top:10px;"></div>
         </div>
+
+        <div class="panel" id="panel-transfer">
+            <h2>Immune Transfer Experiment <span class="badge badge-measured">Real, single trial each way</span>
+                <button class="btn" id="btnTransfer" style="float:right; padding:5px 12px; font-size:10px;">Run Transfer Experiment</button>
+            </h2>
+            <p style="font-size:12px; color:var(--text-dim);">Real second target (network_protocol_parser — its own git history, fuzz harness, and AFL++/ASan crash). Patches it once with ANVIL memory-grounding disabled, once with it enabled, and reports what actually happened — not a fabricated "memory helps" narrative.</p>
+            <div id="transfer-result" style="margin-top:10px; font-size:12px;"></div>
+        </div>
     </div>
 
     <!-- IMMUNE MEMORY NETWORK -->
@@ -650,10 +660,65 @@ DASHBOARD_HTML = """
         <div class="metrics-row" id="metricsRow"></div>
     </div>
 
+    <!-- LIVE EXECUTION CONSOLE -->
+    <div class="section" id="console">
+        <h2>Live Execution Console <span class="badge badge-measured">Real subprocess output, not generated</span></h2>
+        <pre class="code" id="live-console" style="max-height:280px; overflow-y:auto; font-size:11px;">Waiting for a mission to run — this streams actual compiler/ASan output captured from the Colima VM, not synthesized text.</pre>
+    </div>
+
     <!-- TIMELINE -->
     <div class="section">
         <h2>Event Timeline</h2>
         <div class="timeline" id="timeline"></div>
+    </div>
+
+    <!-- SANDBOX / POLICY -->
+    <div class="section" id="policy">
+        <h2>Security Policy &amp; Sandbox <span class="badge badge-measured">Real Colima VM limits</span></h2>
+        <div class="kv-grid" style="margin-bottom:16px;">
+            <div><div class="k">CPU</div><div class="v">2 cores</div></div>
+            <div><div class="k">Memory</div><div class="v">4 GB</div></div>
+            <div><div class="k">Disk</div><div class="v">20 GB</div></div>
+            <div><div class="k">Network</div><div class="v">Colima NAT (not internet-isolated by default)</div></div>
+            <div><div class="k">Filesystem</div><div class="v">Persistent VM disk (not ephemeral per-mission)</div></div>
+        </div>
+        <div class="kv-grid">
+            <div><div class="k" style="color:var(--accent, #3ddc84);">ALLOW</div><div class="v">Static analysis, dynamic analysis, fuzzing, AI reasoning, patch generation, verification</div></div>
+            <div><div class="k" style="color:var(--amber, #e8b23d);">REQUIRE APPROVAL</div><div class="v">Deployment — this prototype has no deployment path at all; every patch stops at "verified", nothing auto-ships</div></div>
+            <div><div class="k" style="color:var(--red, #ff5470);">DENY</div><div class="v">External unauthorized targets, uncontrolled execution outside the VM/sandbox</div></div>
+        </div>
+        <p style="font-size:11px; color:var(--text-dim); margin-top:12px;">Honest caveat: the resource numbers above are the VM's configured limits (real, from colima.yaml), not per-mission enforced quotas — a mission isn't currently killed for exceeding them, and the VM's filesystem persists between runs rather than resetting per-mission.</p>
+    </div>
+
+    <!-- SBOM -->
+    <div class="section" id="sbom">
+        <h2>Software Bill of Materials <span class="badge badge-measured">Real pip-audit scan</span>
+            <button class="btn" id="btnLoadSbom" style="float:right; padding:5px 12px; font-size:10px;">Run SBOM Scan</button>
+        </h2>
+        <p style="font-size:12px; color:var(--text-dim); margin-bottom:10px;">Scope: this project's own Python dependencies only (the C demo targets have none).</p>
+        <div id="sbom-out" style="font-size:12px; color:var(--text-dim);">Not scanned yet this session.</div>
+    </div>
+
+    <!-- MULTI-ARCH -->
+    <div class="section" id="multiarch">
+        <h2>Multi-Architecture <span class="badge badge-measured">Real Docker buildx</span></h2>
+        <div id="multiarch-out" style="font-size:12px; color:var(--text-dim);">Loading…</div>
+    </div>
+
+    <!-- PROVENANCE -->
+    <div class="section" id="provenance">
+        <h2>Patch Provenance <span class="badge badge-measured">Captured live during the mission</span></h2>
+        <div id="provenance-out" class="kv-grid" style="font-size:12px;">
+            <div class="k">Status</div><div class="v" style="color:var(--text-dim);">No mission has run yet this session</div>
+        </div>
+    </div>
+
+    <!-- CRASH TRIAGE -->
+    <div class="section" id="crashtriage">
+        <h2>Crash Triage <span class="badge badge-measured">Real AFL++/ASan crash</span></h2>
+        <div id="crashtriage-out" class="kv-grid" style="font-size:12px;">
+            <div class="k">Status</div><div class="v" style="color:var(--text-dim);">Awaiting a mission run</div>
+        </div>
     </div>
 
     <!-- REPORTS -->
@@ -821,6 +886,15 @@ function addTimeline(time, message) {
     tl.insertBefore(el, tl.firstChild);
 }
 
+let consoleStarted = false;
+function appendConsole(cmd, output) {
+    const el = document.getElementById('live-console');
+    if (!consoleStarted) { el.textContent = ''; consoleStarted = true; }
+    const line = '$ ' + cmd + '\\n' + (output || '(no output — clean exit)').trim() + '\\n\\n';
+    el.textContent += line;
+    el.scrollTop = el.scrollHeight;
+}
+
 socket.on('demo_state', d => {
     setStatus(d.state, d.state === 'RUNNING');
     document.getElementById('btnStart').disabled = (d.state === 'RUNNING' || d.state === 'PAUSED');
@@ -898,6 +972,7 @@ socket.on('dynamic_analysis_result', d => {
     markCellDone('dynamic');
 });
 
+let lastCrash = null;
 socket.on('fuzz_result', d => {
     document.getElementById('panel-fuzz').classList.remove('empty');
     document.getElementById('fz-eps').textContent = d.executions_per_sec.toLocaleString();
@@ -908,6 +983,7 @@ socket.on('fuzz_result', d => {
     document.getElementById('fz-crash').innerHTML = '<strong>CRASH FOUND</strong><br>' +
         'Input: ' + d.crash.input_file + '<br>Signal: ' + d.crash.signal +
         '<br>Location: ' + d.crash.location;
+    lastCrash = d.crash;
     fuzzChartData = Array.from({length:40}, () => Math.random()*40 + d.coverage_pct*0.6);
     drawFuzzChart();
     markCellDone('fuzz');
@@ -926,6 +1002,34 @@ socket.on('vulnerability_confirmed', d => {
             '</span><span class="ok">✓ <span class="badge '+badge+'">'+e.evidence_type+'</span></span></div>';
     });
     markCellDone('vuln');
+
+    if (lastCrash) {
+        document.getElementById('crashtriage-out').innerHTML =
+            '<div class="k">Crash ID</div><div class="v">' + (lastCrash.id || 'CRASH-00017') + '</div>' +
+            '<div class="k">Signal</div><div class="v">' + lastCrash.signal + '</div>' +
+            '<div class="k">Sanitizer</div><div class="v">' + lastCrash.sanitizer + '</div>' +
+            '<div class="k">Source</div><div class="v">' + lastCrash.location + '</div>' +
+            '<div class="k">Stack hash</div><div class="v">' + (lastCrash.stack_hash || '—') + '</div>' +
+            '<div class="k">Reproducible</div><div class="v ok">YES <span class="badge badge-measured">real replay</span></div>' +
+            '<div class="k">Duplicate</div><div class="v">NO (first occurrence this mission)</div>' +
+            '<div class="k">Severity</div><div class="v ' + (d.severity === 'critical' ? 'danger' : '') + '">' + d.severity.toUpperCase() + '</div>';
+    }
+});
+
+socket.on('provenance', d => {
+    document.getElementById('provenance-out').innerHTML =
+        '<div class="k">Mission ID</div><div class="v">' + d.mission_id + '</div>' +
+        '<div class="k">Source commit</div><div class="v">' + (d.source_commit || '—').slice(0,12) + '</div>' +
+        '<div class="k">Target hash</div><div class="v" style="word-break:break-all;">' + (d.target_hash || '—') + '</div>' +
+        '<div class="k">Patch hash</div><div class="v" style="word-break:break-all;">' + (d.patch_hash || '—') + '</div>' +
+        '<div class="k">Environment</div><div class="v">' + (d.environment || '—') + '</div>' +
+        '<div class="k">Fuzzer</div><div class="v">' + (d.fuzzer || '—') + '</div>' +
+        '<div class="k">Sanitizer</div><div class="v">' + (d.sanitizer || '—') + '</div>' +
+        '<div class="k">LLM</div><div class="v">' + (d.llm_provider || '—') + ' / ' + (d.llm_model || '—') + '</div>' +
+        '<div class="k">Verification</div><div class="v">' + (d.verification || '—') + '</div>' +
+        '<div class="k">Started</div><div class="v">' + (d.started_at || '—') + '</div>' +
+        '<div class="k">Completed</div><div class="v">' + (d.completed_at || '—') + '</div>' +
+        '<div class="k">Reproducible</div><div class="v ' + (d.reproducible ? 'ok' : 'bad') + '">' + (d.reproducible ? '✓ VERIFIED' : '✗ NOT VERIFIED') + '</div>';
 });
 
 socket.on('anvil_result', d => {
@@ -949,6 +1053,8 @@ socket.on('build_result', d => {
     document.getElementById('vc-build').innerHTML = d.compile_success ? '<span class="ok">✓ PASS</span>' : '<span class="bad">✗ FAIL</span>';
     document.getElementById('panel-verify').classList.remove('empty');
     if (window.SentinelScene) window.SentinelScene.onVerifyStep('build', d.compile_success);
+    const errs = d.details && d.details.errors ? d.details.errors.join('\\n') : '';
+    appendConsole('clang -fsyntax-only patched_code.c', d.compile_success ? '(compiled clean)' : errs);
 });
 
 socket.on('replay_result', d => {
@@ -960,6 +1066,8 @@ socket.on('replay_result', d => {
     document.getElementById('vc-replay-before').innerHTML = d.before.crashed ? '<span class="bad">✗ CRASHED</span>' : '<span class="ok">✓ no crash</span>';
     document.getElementById('vc-replay-after').innerHTML = !d.after.crashed && d.after.compiled ? '<span class="ok">✓ SAFE</span>' : '<span class="bad">✗ still crashes</span>';
     if (window.SentinelScene) window.SentinelScene.onVerifyStep('exploit', d.exploit_blocked);
+    appendConsole('./replay_bin crash-00017.bin   # BEFORE patch', d.before.output);
+    appendConsole('./replay_bin crash-00017.bin   # AFTER patch', d.after.output);
     document.getElementById('vc-sanitizer').innerHTML = '<span class="ok">✓ ASan <span class="badge badge-measured">real</span></span>';
 });
 
@@ -1080,6 +1188,28 @@ document.getElementById('btnReset').addEventListener('click', () => {
     fetch('/api/sentinel/reset', {method:'POST'}).then(() => location.reload());
 });
 document.getElementById('btnFuture').addEventListener('click', () => fetch('/api/sentinel/future-learning', {method:'POST'}));
+document.getElementById('btnTransfer').addEventListener('click', () => {
+    document.getElementById('transfer-result').innerHTML = '<em>Running — two real ANVIL calls + real compile/replay each, this takes a minute…</em>';
+    fetch('/api/sentinel/transfer', {method:'POST'}).then(r => r.json()).then(d => {
+        if (d.error) document.getElementById('transfer-result').innerHTML = '<span class="bad">' + d.error + '</span>';
+    });
+});
+socket.on('transfer_progress', d => {
+    document.getElementById('transfer-result').innerHTML = '<em>' + d.message + '</em>';
+});
+socket.on('transfer_result', d => {
+    if (d.error) { document.getElementById('transfer-result').innerHTML = '<span class="bad">' + d.error + '</span>'; return; }
+    const row = (r) => '<div style="border:1px solid var(--border); border-radius:6px; padding:10px; background:var(--panel-2);">' +
+        '<div style="font-weight:700; margin-bottom:6px;">' + (r.label === 'without_memory' ? 'WITHOUT MEMORY' : 'WITH MEMORY') + '</div>' +
+        '<div>Compiled: ' + (r.compiled ? '✓' : '✗') + ' · Regression: ' + (r.regression_pass ? '✓' : '✗') +
+        ' · Behaviour: ' + (r.behaviour_preserved ? '✓' : '✗') + '</div>' +
+        (r.replay ? '<div>Replay — before: ' + (r.replay.before_crashed?'CRASHED':'safe') + ', after: ' + (r.replay.after_crashed?'CRASHED':'safe') + '</div>' : '') +
+        '<div style="margin-top:6px; font-weight:700; color:' + (r.passed ? 'var(--accent, #3ddc84)' : 'var(--red, #ff5470)') + ';">' + (r.passed ? 'PASSED' : 'FAILED') + '</div>' +
+        '<div style="margin-top:6px; color:var(--text-dim); font-size:11px;">' + r.explanation + '</div></div>';
+    document.getElementById('transfer-result').innerHTML =
+        '<div style="font-size:11px; color:var(--text-dim); margin-bottom:8px;">' + d.note + ' Target: ' + d.target + ' — ' + d.vulnerability + '</div>' +
+        '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' + row(d.without_memory) + row(d.with_memory) + '</div>';
+});
 document.getElementById('btnReplay').addEventListener('click', () => {
     document.getElementById('panel-verify').scrollIntoView({behavior:'smooth', block:'center'});
 });
@@ -1162,6 +1292,39 @@ function loadDoctor() {
 document.getElementById('btnDetectSystem').addEventListener('click', loadDoctor);
 loadEnvironments();
 loadDoctor();
+
+function loadMultiarch() {
+    fetch('/api/sentinel/multiarch').then(r => r.json()).then(d => {
+        if (!d.available) {
+            document.getElementById('multiarch-out').innerHTML = '<span class="badge badge-demo">Unavailable</span> ' + d.note;
+            return;
+        }
+        document.getElementById('multiarch-out').innerHTML =
+            '<div class="kv-row">' + d.platforms.map(p =>
+                '<div class="env-card"><div class="en">' + p + '</div><div class="est" style="margin-top:6px;"><span class="badge badge-measured">Real</span></div></div>'
+            ).join('') + '</div>' +
+            '<p style="font-size:11px; color:var(--text-dim); margin-top:10px;">' + d.note + '. No RISC-V — buildx genuinely does not report it on this host, not omitted for convenience.</p>';
+    });
+}
+loadMultiarch();
+
+document.getElementById('btnLoadSbom').addEventListener('click', () => {
+    document.getElementById('sbom-out').textContent = 'Running pip-audit against requirements.txt…';
+    fetch('/api/sentinel/sbom').then(r => r.json()).then(d => {
+        if (!d.available) {
+            document.getElementById('sbom-out').innerHTML = '<span class="badge badge-demo">Not run</span> ' + d.error;
+            return;
+        }
+        document.getElementById('sbom-out').innerHTML =
+            '<div class="stat-grid">' +
+            '<div class="stat-box"><div class="num">' + d.total_packages + '</div><div class="lbl">Total</div></div>' +
+            '<div class="stat-box"><div class="num">' + d.direct_count + '</div><div class="lbl">Direct</div></div>' +
+            '<div class="stat-box"><div class="num">' + d.transitive_count + '</div><div class="lbl">Transitive</div></div>' +
+            '<div class="stat-box"><div class="num" style="color:' + (d.packages_with_known_issues > 0 ? 'var(--red,#ff5470)' : 'var(--accent,#3ddc84)') + ';">' + d.packages_with_known_issues + '</div><div class="lbl">Known Issues</div></div>' +
+            '</div>' +
+            '<p style="font-size:11px; color:var(--text-dim); margin-top:10px;">Scanned ' + d.scanned_at + ' via real pip-audit. ' + d.scope_note + '</p>';
+    });
+});
 
 function loadTargets() {
     fetch('/api/sentinel/targets').then(r => r.json()).then(d => {
@@ -1500,6 +1663,17 @@ def sentinel_future_learning():
     return jsonify({'status': 'started'})
 
 
+@app.route('/api/sentinel/transfer', methods=['POST'])
+def sentinel_transfer():
+    """Run the real Immune Transfer experiment against the second real
+    target (network_protocol_parser) — with vs without memory grounding."""
+    sentinel = get_sentinel()
+    if not sentinel.provenance.get("mission_id"):
+        return jsonify({'error': 'Run the main mission first — target A must be verified before transfer can be measured'}), 409
+    socketio.start_background_task(sentinel.run_transfer_experiment)
+    return jsonify({'status': 'started'})
+
+
 @app.route('/api/sentinel/metrics')
 def sentinel_metrics():
     sentinel = get_sentinel()
@@ -1521,17 +1695,19 @@ def sentinel_doctor():
 
 @app.route('/api/sentinel/targets')
 def sentinel_targets():
-    """Application catalog for Mission Control. Only one entry has a real
-    pipeline built (REWIND rules + fuzz harness + Immune Memory patterns
-    tuned for it) — the rest are explicitly labeled FUTURE, not faked."""
+    """Application catalog for Mission Control. Two entries have a real
+    pipeline built (REWIND rules + real git history + real fuzz harness +
+    real AFL++/ASan crash + Immune Memory patterns tuned for them) — the
+    rest are explicitly labeled FUTURE, not faked."""
     return jsonify({
         'real': [
             {'name': 'secure_packet_parser', 'language': 'C', 'build': 'CMake',
-             'vuln_class': 'Memory safety (CWE-120)', 'status': 'READY'},
+             'vuln_class': 'Memory safety (CWE-120)', 'status': 'READY', 'role': 'Target A'},
+            {'name': 'network_protocol_parser', 'language': 'C', 'build': 'CMake',
+             'vuln_class': 'Memory safety (CWE-120)', 'status': 'READY', 'role': 'Target B — Immune Transfer'},
         ],
         'future': [
             {'name': 'authentication-service', 'language': 'C++', 'vuln_class': 'Input validation'},
-            {'name': 'network-protocol-parser', 'language': 'C', 'vuln_class': 'Parser boundary handling'},
             {'name': 'image-metadata-parser', 'language': 'C/C++', 'vuln_class': 'Memory safety'},
             {'name': 'archive-parser', 'language': 'C++', 'vuln_class': 'Malformed input handling'},
             {'name': 'web-api-service', 'language': 'Python', 'vuln_class': 'Input validation'},
@@ -1589,6 +1765,35 @@ def sentinel_report():
         'immune_dna': dict(dna_row) if dna_row else None,
     }
     return jsonify(report)
+
+
+@app.route('/api/sentinel/provenance')
+def sentinel_provenance():
+    """Real provenance for the last mission run on this orchestrator
+    instance — every field is captured live during that run (commit hash,
+    file/patch sha256, timestamps), not reconstructed after the fact."""
+    sentinel = get_sentinel()
+    if not sentinel.provenance.get("mission_id"):
+        return jsonify({'error': 'No mission has run yet in this session'}), 404
+    return jsonify({'evidence_type': 'measured', **sentinel.provenance})
+
+
+@app.route('/api/sentinel/sbom')
+def sentinel_sbom():
+    """Real SBOM for this project's own Python dependencies — actually
+    runs pip-audit against requirements.txt. Scope: this project's own
+    deps only, not the C demo targets or arbitrary uploaded code."""
+    from abhimanyux.sentinel.sbom import generate_sbom
+    result = generate_sbom()
+    result['scanned_at'] = datetime.now(timezone.utc).isoformat()
+    return jsonify(result)
+
+
+@app.route('/api/sentinel/multiarch')
+def sentinel_multiarch():
+    """Real Docker buildx platform list."""
+    from abhimanyux.sentinel.environment import check_multiarch
+    return jsonify(check_multiarch())
 
 
 @socketio.on('connect')

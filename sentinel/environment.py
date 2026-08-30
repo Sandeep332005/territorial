@@ -10,7 +10,7 @@ import platform
 import shutil
 import subprocess
 from dataclasses import dataclass, asdict
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 
 @dataclass
@@ -102,6 +102,22 @@ def check_model_present(model: str, api_url: str) -> ToolCheck:
         return ToolCheck(name=f"model {model}", found=False, note="server unreachable, cannot check")
 
 
+def check_multiarch() -> Dict:
+    """Real Docker buildx platform list — not a fabricated architecture
+    matrix. RISC-V is honestly absent unless buildx actually reports it."""
+    try:
+        result = subprocess.run(["docker", "buildx", "inspect", "--bootstrap"],
+                                 capture_output=True, text=True, timeout=15)
+        for line in result.stdout.splitlines():
+            if line.strip().startswith("Platforms:"):
+                platforms = [p.strip() for p in line.split(":", 1)[1].split(",")]
+                return {"available": True, "platforms": platforms,
+                        "note": "via Docker buildx/QEMU emulation, except the native arch"}
+        return {"available": False, "platforms": [], "note": "buildx did not report a platform list"}
+    except Exception as e:
+        return {"available": False, "platforms": [], "note": f"buildx unavailable: {e}"}
+
+
 def compiler_toolchain_report() -> List[ToolCheck]:
     """On macOS, `gcc` is virtually always an alias to Apple Clang, not the
     real GNU Compiler Collection — reporting its `--version` output under
@@ -166,4 +182,5 @@ def system_report(anvil_model: str = "qwen2.5-coder:3b",
         },
         "kvm_available": False,
         "kvm_note": "KVM is a Linux kernel feature; unavailable on any macOS host regardless of configuration.",
+        "multiarch": check_multiarch(),
     }

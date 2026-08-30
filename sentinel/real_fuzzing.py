@@ -1,11 +1,10 @@
 """
 ABHIMANYU X - Real AFL++/ASan Crash Replay
 
-Actually compiles a given parser.c source with clang+ASan inside the Colima
-Linux VM (via `colima ssh`), links it against the real fuzz harness, and
-executes it against the real crash input AFL++ found (see
-vulnerable_targets/secure_packet_parser/findings/crashes/crash-00017.bin).
-Returns the genuine exit code and ASan report — nothing here is simulated.
+Actually compiles a given C source with clang+ASan inside the Colima Linux
+VM (via `colima ssh`), links it against the real fuzz harness for that
+target, and executes it against a real AFL++-found crash input. Returns the
+genuine exit code and ASan report — nothing here is simulated.
 
 Known limitation, disclosed rather than hidden: afl-cc's SanitizerCoverage
 instrumentation pass (LLVM 17, arm64 Ubuntu 24.04 apt package) does not
@@ -16,17 +15,35 @@ was run for real in blind/non-instrumented mode (`-n`) against a plain
 clang+ASan binary, which correctly detects the crash. Exploit replay
 (before/after patch) below runs the same real ASan binary directly and is
 unaffected by that limitation.
+
+Two real targets are registered: secure_packet_parser (parser.c) and
+network_protocol_parser (frame.c) — each has its own real 2-commit git
+history, fuzz harness, and AFL++-found crash input.
 """
 
 import subprocess
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-TARGET_DIR = REPO_ROOT / "vulnerable_targets" / "secure_packet_parser"
-CRASH_INPUT = TARGET_DIR / "findings" / "crashes" / "crash-00017.bin"
-SCRATCH = TARGET_DIR / "_replay_scratch"
-HARNESS_SRC = TARGET_DIR / "fuzz_harness.c"
+TARGETS_ROOT = REPO_ROOT / "vulnerable_targets"
+
+TARGETS = {
+    "secure_packet_parser": {
+        "dir": TARGETS_ROOT / "secure_packet_parser",
+        "source_filename": "parser.c",
+        "crash_input": TARGETS_ROOT / "secure_packet_parser" / "findings" / "crashes" / "crash-00017.bin",
+    },
+    "network_protocol_parser": {
+        "dir": TARGETS_ROOT / "network_protocol_parser",
+        "source_filename": "frame.c",
+        "crash_input": TARGETS_ROOT / "network_protocol_parser" / "findings" / "crashes" / "crash-frame-01.bin",
+    },
+}
+
+# Preserved for existing call sites that don't pass target=
+TARGET_DIR = TARGETS["secure_packet_parser"]["dir"]
+CRASH_INPUT = TARGETS["secure_packet_parser"]["crash_input"]
 
 
 def _vm(cmd: str, timeout: int = 30) -> subprocess.CompletedProcess:
@@ -36,21 +53,30 @@ def _vm(cmd: str, timeout: int = 30) -> subprocess.CompletedProcess:
     )
 
 
-def replay_against_code(code: str, payload_size: int = None) -> Dict:
-    """Compile `code` as parser.c + the real fuzz harness with clang+ASan in
-    the Linux VM, then execute a real input against it. Real subprocess
-    execution and real ASan output; not a canned result.
+def replay_against_code(code: str, payload_size: int = None,
+                         target: str = "secure_packet_parser") -> Dict:
+    """Compile `code` as the target's source file + its real fuzz harness
+    with clang+ASan in the Linux VM, then execute a real input against it.
+    Real subprocess execution and real ASan output; not a canned result.
 
     payload_size: if given, generates a fresh all-'B' input of exactly that
     many bytes (for adversarial robustness testing across the boundary)
-    instead of using the fixed AFL++-found crash-00017.bin."""
+    instead of using the target's fixed AFL++-found crash input.
+    target: key into TARGETS — which registered vulnerable application to
+    compile and replay against."""
+    spec = TARGETS[target]
+    target_dir = spec["dir"]
+    scratch = target_dir / "_replay_scratch"
+    harness_src = target_dir / "fuzz_harness.c"
+    source_filename = spec["source_filename"]
+
     try:
-        SCRATCH.mkdir(exist_ok=True)
-        (SCRATCH / "parser.c").write_text(code)
-        (SCRATCH / "fuzz_harness.c").write_text(HARNESS_SRC.read_text())
+        scratch.mkdir(exist_ok=True)
+        (scratch / source_filename).write_text(code)
+        (scratch / "fuzz_harness.c").write_text(harness_src.read_text())
 
         compile_result = _vm(
-            f"cd {SCRATCH} && clang-18 -g -fsanitize=address -o replay_bin fuzz_harness.c 2>&1"
+            f"cd {scratch} && clang-18 -g -fsanitize=address -o replay_bin fuzz_harness.c 2>&1"
         )
         if compile_result.returncode != 0:
             return {
@@ -61,12 +87,12 @@ def replay_against_code(code: str, payload_size: int = None) -> Dict:
             }
 
         if payload_size is not None:
-            input_path = SCRATCH / f"input_{payload_size}.bin"
+            input_path = scratch / f"input_{payload_size}.bin"
             input_path.write_bytes(b"B" * payload_size)
         else:
-            input_path = CRASH_INPUT
+            input_path = spec["crash_input"]
 
-        run_result = _vm(f"cd {SCRATCH} && ./replay_bin {input_path} 2>&1")
+        run_result = _vm(f"cd {scratch} && ./replay_bin {input_path} 2>&1")
         crashed = run_result.returncode != 0
         return {
             "evidence_type": "measured",

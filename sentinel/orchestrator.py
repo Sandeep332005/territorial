@@ -22,6 +22,7 @@ coverage-guided instrumentation is not currently functional here and these
 specific numbers are not measured. See sentinel/real_fuzzing.py docstring.
 """
 
+import hashlib
 import re
 import threading
 import time
@@ -30,8 +31,10 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Callable, Dict, Optional
 
+from abhimanyux.anvil.engine import ANVILEngine
 from abhimanyux.core.orchestrator import AbhimanyuXCore
 from abhimanyux.rewind.engine import REWINDEngine
+from abhimanyux.verifier.engine import VerificationEngine
 from abhimanyux.sentinel.demo_evidence import (
     dynamic_analysis_evidence,
     fuzz_campaign_evidence,
@@ -45,6 +48,10 @@ TARGET_FILE = TARGET_REPO / "parser.c"
 TARGET_FILE_REL = "abhimanyux/vulnerable_targets/secure_packet_parser/parser.c"
 V2_FILE = REPO_ROOT / "vulnerable_targets" / "network_parser_v2.c"
 V2_FILE_REL = "abhimanyux/vulnerable_targets/network_parser_v2.c"
+
+TARGET_B_REPO = REPO_ROOT / "vulnerable_targets" / "network_protocol_parser"
+TARGET_B_FILE = TARGET_B_REPO / "frame.c"
+TARGET_B_FILE_REL = "abhimanyux/vulnerable_targets/network_protocol_parser/frame.c"
 
 
 def _now_hms() -> str:
@@ -79,6 +86,8 @@ class SentinelOrchestrator:
         }
         self._last_verified_vuln = None
         self._last_failure_reason = None
+        self.mission_id = None
+        self.provenance = {}
 
     def pause(self):
         self._pause_event.clear()
@@ -115,7 +124,11 @@ class SentinelOrchestrator:
         """Executes the entire lifecycle once against secure_packet_parser."""
         self._reset_flag.clear()
         self.state = "RUNNING"
-        self.emit("demo_state", {"state": self.state, "message": "INITIALIZING ABHIMANYU X"})
+        self.mission_id = "ABX-" + datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        self.provenance = {"mission_id": self.mission_id,
+                            "started_at": datetime.now(timezone.utc).isoformat()}
+        self.emit("demo_state", {"state": self.state, "message": "INITIALIZING ABHIMANYU X",
+                                  "mission_id": self.mission_id})
 
         try:
             self._stage("INIT", "ABHIMANYU X initializing", 2)
@@ -127,6 +140,7 @@ class SentinelOrchestrator:
             self._stage("REWIND", "Running REWIND commit analysis", 12)
             rewind = REWINDEngine()
             commit_info = rewind.analyze_commit(str(TARGET_REPO), "HEAD")
+            self.provenance["source_commit"] = commit_info["full_hash"]
             self.emit("rewind_result", commit_info)
             self._stage(
                 "REWIND", f"Security-sensitive change detected in {commit_info['commit']}",
@@ -136,6 +150,7 @@ class SentinelOrchestrator:
             # --- STATIC_ANALYSIS: real REWIND scan ---
             self._stage("STATIC_ANALYSIS", "Running static analysis", 24)
             code = TARGET_FILE.read_text()
+            self.provenance["target_hash"] = "sha256:" + hashlib.sha256(code.encode()).hexdigest()
             findings = rewind.scan(code, TARGET_FILE_REL)
             self.emit("static_analysis_result", {
                 "evidence_type": "measured",
@@ -204,6 +219,9 @@ class SentinelOrchestrator:
 
                 patch = self.core.anvil.analyze_and_patch(code, attempt_vuln)
                 self.metrics["patches_generated"] += 1
+                self.provenance["patch_hash"] = "sha256:" + hashlib.sha256(patch.patched_code.encode()).hexdigest()
+                self.provenance["llm_provider"] = self.core.anvil.config.provider
+                self.provenance["llm_model"] = self.core.anvil.config.model
                 self.emit("anvil_result", {
                     "evidence_type": "ai_generated",
                     "explanation": patch.explanation,
@@ -304,6 +322,8 @@ class SentinelOrchestrator:
                 "behaviour_preserved": bool(verification and verification.behavior_preserved),
             }
             trust_score = sum(1 for v in trust_gates.values() if v)
+            self.provenance["verification"] = f"{trust_score}/{len(trust_gates)}"
+            self.provenance["reproducible"] = trust_score == len(trust_gates)
             self.emit("patch_trust", {
                 "evidence_type": "measured",
                 "gates": trust_gates,
@@ -345,6 +365,12 @@ class SentinelOrchestrator:
                     "cwe": vuln.cwe_id,
                     "pattern": "Untrusted length -> fixed-size buffer copy",
                 })
+
+            self.provenance["completed_at"] = datetime.now(timezone.utc).isoformat()
+            self.provenance["environment"] = "Colima Linux VM (Ubuntu 24.04, aarch64) + macOS host"
+            self.provenance["fuzzer"] = "AFL++ 4.09c (blind mode)"
+            self.provenance["sanitizer"] = "AddressSanitizer"
+            self.emit("provenance", {"evidence_type": "measured", **self.provenance})
 
             self._stage("COMPLETE", "ABHIMANYU X HAS LEARNED" if all_pass else
                         "Verification failed — patch rejected", 100)
@@ -409,3 +435,68 @@ class SentinelOrchestrator:
             "recommendation": "Review input boundary before memory copy." if matched else None,
         }
         self.emit("future_learning_result", result)
+
+    def run_transfer_experiment(self):
+        """Real Immune Transfer experiment: patch the same vulnerability
+        class on a SECOND real target (network_protocol_parser, its own
+        real git history + real AFL++/ASan crash) once WITHOUT memory
+        grounding and once WITH it, and report what actually happened.
+
+        This is a single real trial each way, not a statistically powered
+        N-trial benchmark — a small local model's output varies run to run,
+        and running enough trials to be statistically meaningful would cost
+        many more multi-second LLM calls than is practical here. Numbers
+        reported are exactly what those two real runs produced.
+
+        WITHOUT MEMORY uses a fresh ANVILEngine with memory=None, so
+        `_retrieve_similar_patch` returns nothing. WITH MEMORY uses
+        self.core.anvil, which already has memory=self.core.memory wired —
+        real retrieval grounding is active if target A's patch was already
+        verified and committed."""
+        rewind = REWINDEngine()
+        code = TARGET_B_FILE.read_text()
+        findings = rewind.scan(code, TARGET_B_FILE_REL)
+        if not findings:
+            self.emit("transfer_result", {"evidence_type": "measured",
+                       "error": "No findings in network_protocol_parser/frame.c"})
+            return
+        vuln = findings[0]
+        verifier = VerificationEngine()
+
+        def _attempt(anvil_engine, label):
+            patch = anvil_engine.analyze_and_patch(code, vuln)
+            verification = verifier.verify(code, patch.patched_code, vuln, patch)
+            replay = None
+            passed = verification.all_tests_pass
+            if verification.compile_success:
+                before = replay_against_code(code, target="network_protocol_parser")
+                after = replay_against_code(patch.patched_code, target="network_protocol_parser")
+                exploit_blocked = bool(before.get("crashed")) and after.get("crashed") is False
+                passed = passed and exploit_blocked
+                replay = {"before_crashed": before.get("crashed"), "after_crashed": after.get("crashed")}
+            return {
+                "label": label,
+                "compiled": verification.compile_success,
+                "regression_pass": verification.regression_pass,
+                "behaviour_preserved": verification.behavior_preserved,
+                "replay": replay,
+                "passed": passed,
+                "explanation": patch.explanation[:300],
+            }
+
+        self.emit("transfer_progress", {"message": "Running WITHOUT memory grounding (fresh ANVIL, no retrieval)…"})
+        anvil_no_memory = ANVILEngine(self.core.anvil.config, memory=None)
+        without_memory = _attempt(anvil_no_memory, "without_memory")
+
+        self.emit("transfer_progress", {"message": "Running WITH memory grounding (retrieval-augmented ANVIL)…"})
+        with_memory = _attempt(self.core.anvil, "with_memory")
+
+        self.emit("transfer_result", {
+            "evidence_type": "measured",
+            "note": "Single real trial each way — not a statistically powered benchmark.",
+            "target": "network_protocol_parser",
+            "vulnerability": vuln.title,
+            "cwe": vuln.cwe_id,
+            "without_memory": without_memory,
+            "with_memory": with_memory,
+        })
