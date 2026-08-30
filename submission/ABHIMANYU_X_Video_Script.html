@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABHIMANYU X — Video Explanation Script</title>
+<style>
+  :root{
+    --bg:#05080a; --panel:#0b1116; --panel-2:#0e161c; --border:#1c2a32;
+    --cyan:#2de2c9; --green:#3ddc84; --amber:#e8b23d; --blue:#4fa3ff; --red:#ff5470;
+    --text:#d9e6ea; --text-dim:#7d8f97;
+    --mono:'SF Mono','Fira Code',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:var(--bg);color:var(--text);}
+  body{
+    font-family:var(--mono);
+    line-height:1.65;
+    padding:0 0 80px;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:0 28px;}
+
+  header{padding:64px 0 40px;border-bottom:1px solid var(--border);}
+  .kicker{font-size:12px;letter-spacing:.18em;color:var(--text-dim);text-transform:uppercase;margin-bottom:14px;}
+  h1{
+    font-size:clamp(2rem,5vw,3.2rem);font-weight:800;letter-spacing:.02em;color:var(--cyan);
+    text-shadow:0 0 24px rgba(45,226,201,.5);line-height:1.05;
+  }
+  .subtitle{margin-top:14px;font-size:15px;color:var(--text-dim);letter-spacing:.02em;max-width:640px;}
+  .meta-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;}
+  .badge{
+    font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;
+    border:1px solid var(--border);border-radius:5px;color:var(--text-dim);
+  }
+  .badge.on{color:var(--cyan);border-color:rgba(45,226,201,.4);}
+
+  section.beat{padding:36px 0;border-bottom:1px solid var(--border);}
+  section.beat:last-of-type{border-bottom:none;}
+  .beat-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
+  .beat-num{font-size:13px;color:var(--cyan);font-weight:700;letter-spacing:.08em;flex:0 0 auto;}
+  .beat-title{font-size:19px;font-weight:700;color:#e6e8ea;letter-spacing:.01em;}
+  .beat-time{font-size:11px;color:var(--text-dim);letter-spacing:.06em;margin-left:auto;white-space:nowrap;}
+
+  .screen{
+    display:flex;gap:10px;align-items:flex-start;
+    background:var(--panel-2);border:1px solid var(--border);border-left:3px solid var(--cyan);
+    border-radius:6px;padding:12px 14px;margin-bottom:16px;
+  }
+  .screen .ic{color:var(--cyan);font-size:13px;flex:0 0 auto;padding-top:1px;}
+  .screen .sc-label{font-size:10px;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase;display:block;margin-bottom:4px;}
+  .screen .sc-text{font-size:12.5px;color:var(--text-dim);letter-spacing:.02em;}
+
+  .narration{font-size:15.5px;color:var(--text);letter-spacing:.01em;}
+  .narration p{margin-bottom:14px;}
+  .narration p:last-child{margin-bottom:0;}
+  .narration strong{color:#e6e8ea;font-weight:700;}
+  .narration em{color:var(--cyan);font-style:normal;}
+  .narration code{
+    font-family:var(--mono);font-size:0.92em;color:var(--amber);
+    background:rgba(255,255,255,.04);padding:1px 5px;border-radius:3px;
+  }
+
+  .optional-tag{
+    font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);
+    border:1px solid rgba(232,178,61,.35);padding:2px 7px;border-radius:4px;
+  }
+
+  .notes{background:var(--panel);border:1px solid var(--panel-bd, var(--border));border-radius:8px;padding:28px;margin-top:40px;}
+  .notes h2{font-size:16px;color:var(--amber);letter-spacing:.06em;margin-bottom:16px;}
+  .notes ul{list-style:none;display:flex;flex-direction:column;gap:12px;}
+  .notes li{font-size:13.5px;color:var(--text);line-height:1.6;padding-left:18px;position:relative;}
+  .notes li::before{content:"▸";position:absolute;left:0;color:var(--amber);}
+  .notes li strong{color:#e6e8ea;}
+
+  footer{margin-top:48px;padding-top:24px;border-top:1px solid var(--border);
+    font-size:11px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+
+  @media(max-width:640px){
+    .beat-time{margin-left:0;}
+    .wrap{padding:0 18px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">// Narration script &amp; video-generation prompt</div>
+  <h1>ABHIMANYU X</h1>
+  <div class="subtitle">Full explanation script for producing a complete demo video — read live over a real screen recording of <code>localhost:5050</code>, or use as a prompt for an AI video tool. Every claim is grounded in what the system actually does.</div>
+  <div class="meta-row">
+    <span class="badge on">RUNTIME ~5–6 MIN</span>
+    <span class="badge">10 BEATS</span>
+    <span class="badge on">GROUNDED IN LIVE PROVENANCE DATA</span>
+  </div>
+</header>
+
+<section class="beat">
+  <div class="beat-head"><span class="beat-num">00</span><span class="beat-title">Cold Open</span><span class="beat-time">10–15s</span></div>
+  <div class="screen"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">Black, then the dashboard idle screen fades in — <code>localhost:5050</code>, mission control panel, status IDLE.</span></div></div>
+  <div class="narration">
+    <p>Every autonomous patch tool has the same problem: the AI that writes the fix is the same AI you're asking to grade its own homework.</p>
+    <p>ABHIMANYU X doesn't do that. Here's what it actually does, end to end, against a real vulnerable C program — no staged demo, no mocked steps.</p>
+  </div>
+</section>
+
+<section class="beat">
+  <div class="beat-head"><span class="beat-num">01</span><span class="beat-title">What This Is</span><span class="beat-time">30–40s</span></div>
+  <div class="screen"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">README header, or the Mission Dossier hero section — "AI proposes → Evidence decides → Verification proves → Memory learns."</span></div></div>
+  <div class="narration">
+    <p>This is ABHIMANYU X — an autonomous cyber-reasoning and self-repair system, built for the AI Kavach Challenge.</p>
+    <p>The brief asks for a system that's an LLM laced with fuzzers, static and dynamic analysis, and a regression harness — one that finds a vulnerability, patches it, and <em>proves</em> the fix holds. Not "generates a plausible-looking diff." Proves it.</p>
+    <p>The core idea in one line: <strong>AI proposes, evidence decides, verification proves, memory learns.</strong> The LLM's output is never trusted by default — it's just a proposal. An independent verification engine, running real compiles and real exploit replays, is what actually decides whether a patch is good.</p>
+  </div>
+</section>
+
+<section class="beat">
+  <div class="beat-head"><span class="beat-num">02</span><span class="beat-title">The Architecture, Briefly</span><span class="beat-time">30s</span><span class="optional-tag">optional</span></div>
+  <div class="screen"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">README architecture diagram, or scroll through the Mission Dossier's "Deep System Architecture" section.</span></div></div>
+  <div class="narration">
+    <p>Under the hood: a Mission Engine drives the whole lifecycle. Every compile, every exploit replay, every fuzzing run happens inside an isolated Colima Linux VM — never on the host machine. Discovery feeds an evidence bundle to a local LLM called ANVIL. ANVIL's patch goes through an independent verification chamber. Only if it passes does anything get written to Immune Memory.</p>
+    <p>If it fails, the failure reason goes back to ANVIL for a second attempt — bounded at two tries, not an unbounded loop.</p>
+  </div>
+</section>
+
+<section class="beat">
+  <div class="beat-head"><span class="beat-num">03</span><span class="beat-title">Watch It Run — Discovery</span><span class="beat-time">15–20s</span></div>
+  <div class="screen"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">Click "Start Autonomous Demo." Let the first several stages flash by fast — don't slow the narration to match, this part is genuinely almost instantaneous.</span></div></div>
+  <div class="narration">
+    <p>Watch what happens when I start a mission.</p>
+    <p>REWIND does a real git diff between the safe commit and the vulnerable one — that's how it knows <em>where</em> to look instead of blindly scanning the whole repo. Static analysis flags a buffer overflow. A real AFL++ campaign already found the crash that proves it. All of this — discovery, evidence collection, confirming the CWE — happens in under a second. It's not for show; it's just genuinely that fast once the crash already exists.</p>
+  </div>
+  <div class="screen" style="margin-top:16px;"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">Evidence panel — CWE-120, confidence, MEASURED badges.</span></div></div>
+  <div class="narration">
+    <p>CWE-120. Confidence scored, not asserted. Every line here is tagged MEASURED or DEMO — this project never blurs the two.</p>
+  </div>
+</section>
+
+<section class="beat">
+  <div class="beat-head"><span class="beat-num">04</span><span class="beat-title">ANVIL Reasons About It</span><span class="beat-time">20–30s — real dwell time, let it breathe</span></div>
+  <div class="screen"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">Side by side — ANVIL panel on one side (Provider: local, Model: qwen2.5-coder:3b), the vulnerable source code on the other.</span></div></div>
+  <div class="narration">
+    <p>Now the system slows down for real — because this is genuine local inference, not an instant canned response.</p>
+    <p>ANVIL is a small model, Qwen2.5-Coder 3B, running entirely on this machine through Ollama. Nothing about this vulnerability, this code, or this patch ever leaves the host. It reads the <em>full</em> vulnerable file — not a snippet — and reasons about root cause before writing a single line of patch.</p>
+    <p>This step alone typically takes somewhere between twenty seconds and just over a minute, depending on how loaded the machine is. That's the honest range, measured across multiple real runs — not a fixed number. It's the slowest part of the whole mission by far, and it's the part most people would assume is instant.</p>
+  </div>
+  <div class="screen" style="margin-top:16px;"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">ANVIL's explanation text populating in real time.</span></div></div>
+  <div class="narration"><p>Root cause, trigger condition, repair strategy — all generated, all still just a proposal at this point.</p></div>
+</section>
+
+<section class="beat">
+  <div class="beat-head"><span class="beat-num">05</span><span class="beat-title">The Patch — And Why It Isn't Trusted Yet</span><span class="beat-time">15s</span></div>
+  <div class="screen"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">Patch Laboratory panel — real diff, "ATTEMPT #1 · AI-GENERATED" badge.</span></div></div>
+  <div class="narration">
+    <p>Here's the actual diff. Three lines. A bounds check before the copy, and a zero-length edge case the original code missed.</p>
+    <p>And right here is the whole philosophy of this project in one badge: <strong>AI-generated.</strong> Not verified. Not trusted. Just proposed.</p>
+  </div>
+</section>
+
+<section class="beat">
+  <div class="beat-head"><span class="beat-num">06</span><span class="beat-title">Verification — Where Trust Actually Gets Earned</span><span class="beat-time">20–25s</span></div>
+  <div class="screen"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">Verification Chamber panel — gate list ticking to 8/8, before/after ASan crash replay box.</span></div></div>
+  <div class="narration">
+    <p>This is the part that matters most, and it's the part most "AI auto-patch" demos skip.</p>
+    <p>Eight independent, real gates. The patch has to actually compile. The real crash input — the one AFL++ found — gets replayed against the patched binary inside the VM, live. It has to genuinely reject the malicious input, not just look like it does.</p>
+    <p>Then it's compiled a <em>second</em> time, completely separately, under UndefinedBehaviorSanitizer — a different instrumentation catching a different bug class than AddressSanitizer. Regression and behavior checks confirm nothing else broke. And then — only for patches that already passed — an adversarial sweep replays six more payload sizes the original crash never touched, to catch a patch that just memorized one input instead of fixing the actual bug.</p>
+    <p>Eight for eight. Verified.</p>
+  </div>
+  <div class="screen" style="margin-top:16px;"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">Zoom on "BEFORE PATCH: CRASHED (real ASan)" / "AFTER PATCH: SAFE — rejected."</span></div></div>
+  <div class="narration"><p>Before: crashes, for real. After: rejected cleanly. Both sides of that box are live subprocess output, not text I wrote.</p></div>
+</section>
+
+<section class="beat">
+  <div class="beat-head"><span class="beat-num">07</span><span class="beat-title">Memory</span><span class="beat-time">10s</span></div>
+  <div class="screen"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">Immune Memory panel — ID, DNA hash, CWE, pattern.</span></div></div>
+  <div class="narration">
+    <p>Only now — after verification, never before — does anything get written to memory. A real SQLite record: the vulnerability pattern, the fix strategy, a content-addressed hash as the ID. This is what "learning" means here: not vibes, a database row that only exists because a real gate said pass.</p>
+  </div>
+</section>
+
+<section class="beat">
+  <div class="beat-head"><span class="beat-num">08</span><span class="beat-title">Transfer — Does the Memory Actually Help?</span><span class="beat-time">25–30s</span></div>
+  <div class="screen"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">Immune Transfer Experiment panel — WITHOUT MEMORY / WITH MEMORY side by side.</span></div></div>
+  <div class="narration">
+    <p>Here's the honest test: does remembering this vulnerability actually help on a <em>different</em> target?</p>
+    <p>Second real codebase, its own git history, its own AFL++ crash. ANVIL patches it twice — once with memory retrieval disabled, once with it enabled — and the system reports what actually happened. Not a fabricated "memory helps" story. A single real trial each way, both independently verified the same eight-gate way as before.</p>
+    <p style="color:var(--text-dim);font-size:13.5px;">[If results differ meaningfully, say so here — read the actual PASSED/FAILED and explanation text live rather than assuming which one wins.]</p>
+  </div>
+</section>
+
+<section class="beat">
+  <div class="beat-head"><span class="beat-num">09</span><span class="beat-title">Provenance — The Receipts</span><span class="beat-time">25–30s</span></div>
+  <div class="screen"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">Navigate to <code style="color:var(--cyan);background:none;padding:0;">localhost:5050/#provenance</code> — the Provenance panel.</span></div></div>
+  <div class="narration">
+    <p>Every claim this system makes, you can check. That's what this panel is for.</p>
+    <p>This is real data from an actual run: mission ID, the exact source commit ABHIMANYU X diffed against, a SHA-256 hash of the target file it scanned, a SHA-256 hash of the patch it generated, which environment it ran in, which fuzzer and sanitizers, which model, and a verification score — in this case 8 out of 8. Start and completion timestamps. And a single word that summarizes all of it: <strong>reproducible.</strong></p>
+    <p>This isn't a report someone wrote after the fact. It's assembled live, field by field, as the mission actually runs — mission ID <code>ABX-20260830-143427</code>, patch hash <code>96ef98a8ca3b…</code>, verified in one minute thirteen seconds on this particular run. Run it again and every one of those values will be different, because it's measuring a different real execution, not replaying a script.</p>
+  </div>
+</section>
+
+<section class="beat">
+  <div class="beat-head"><span class="beat-num">10</span><span class="beat-title">Close</span><span class="beat-time">15–20s</span></div>
+  <div class="screen"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">All six stage pills lit green — DISCOVER, UNDERSTAND, REPAIR, VERIFY, REMEMBER, TRANSFER — then the closing banner.</span></div></div>
+  <div class="narration">
+    <p>Discover. Understand. Repair. Verify. Remember. Transfer. Every one of those six words maps to something that actually ran, on this machine, that you could go check yourself.</p>
+  </div>
+  <div class="screen" style="margin-top:16px;"><span class="ic">▦</span><div><span class="sc-label">Screen</span><span class="sc-text">"ABHIMANYU X — READY FOR THE NEXT THREAT" banner.</span></div></div>
+  <div class="narration">
+    <p>AI proposes. Evidence decides. Verification proves. Memory learns.</p>
+    <p><strong>ABHIMANYU X.</strong></p>
+  </div>
+</section>
+
+<div class="notes">
+  <h2>// Notes for whoever records this</h2>
+  <ul>
+    <li><strong>Don't fake the ANVIL wait.</strong> Either let it run real-time with b-roll (architecture diagram, code scroll) over it, or cut to it having just finished — don't speed it up in a way that implies it's instant. The honest range is ~20s–70s+ per call, measured across real runs this session (fastest recorded: 22.6s total mission; slowest recorded: 73s for ANVIL alone).</li>
+    <li><strong>Transfer's result is not scripted.</strong> Read whatever the WITHOUT/WITH MEMORY panels actually say when you record — don't narrate an assumed outcome.</li>
+    <li><strong>The Provenance values above are from one specific real run</strong> (2026-08-30, mission <code>ABX-20260830-143427</code>). Quote your own run's numbers when you actually record, not these — that's the entire point of the panel.</li>
+    <li>Every on-screen badge (MEASURED / AI-GENERATED / DEMO / FUTURE) is real UI, not something to paraphrase away — if you're narrating over a DEMO-labeled figure (e.g. AFL++ executions/sec, coverage %), say so explicitly, the same way the UI does.</li>
+  </ul>
+</div>
+
+<footer>
+  <span>ABHIMANYU X // AI Kavach Challenge</span>
+  <span>Video script v1</span>
+</footer>
+
+</div>
+</body>
+</html>
