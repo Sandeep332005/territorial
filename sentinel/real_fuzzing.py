@@ -1,5 +1,5 @@
 """
-SENTINEL-X CORE - Real AFL++/ASan Crash Replay
+ABHIMANYU X - Real AFL++/ASan Crash Replay
 
 Actually compiles a given parser.c source with clang+ASan inside the Colima
 Linux VM (via `colima ssh`), links it against the real fuzz harness, and

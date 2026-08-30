@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-SENTINEL-X CORE - Autonomous Cyber Immune System Laboratory
+ABHIMANYU X - Autonomous Cyber Immune System Laboratory
 Web laboratory for the AI Kavach hackathon prototype: watch one vulnerability
 travel REWIND -> DISCOVERY -> FUZZ -> ANVIL -> PATCH -> VERIFICATION ->
 IMMUNE MEMORY, plus ad-hoc interactive scanning of arbitrary code.
 
 Built on the abhimanyux engine (REWIND/ANVIL/Verifier/Immune Memory);
-SENTINEL-X CORE is this project's product identity for the hackathon.
+ABHIMANYU X is this project's product identity for the hackathon.
 
 Usage:
     python -m abhimanyux.api.dashboard
@@ -63,7 +63,7 @@ def get_orchestrator():
 
 
 def get_sentinel():
-    """Get or initialize the SENTINEL-X demo orchestrator (Judge Mode)."""
+    """Get or initialize the ABHIMANYU X demo orchestrator (Judge Mode)."""
     global _sentinel
     with _sentinel_lock:
         if _sentinel is None:
@@ -221,7 +221,7 @@ DASHBOARD_HTML = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINEL-X CORE — Autonomous Cyber Immune Laboratory</title>
+    <title>ABHIMANYU X — Autonomous Cyber Immune Laboratory</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <style>
         :root {
@@ -394,7 +394,7 @@ DASHBOARD_HTML = """
     <div class="mission">
         <div class="mission-top">
             <div>
-                <h1><span class="core">SENTINEL</span>-X CORE</h1>
+                <h1><span class="core">ABHIMANYU</span> X</h1>
                 <div class="subtitle">Autonomous Cyber Immune Cell — AI Kavach Prototype</div>
             </div>
             <div class="legend">
@@ -433,7 +433,7 @@ DASHBOARD_HTML = """
     <div class="final-card" id="finalCard">
         <h2>SECURITY REPAIR VERIFIED</h2>
         <div class="final-kv" id="finalKv"></div>
-        <div class="final-tag">SENTINEL-X HAS LEARNED</div>
+        <div class="final-tag">ABHIMANYU X HAS LEARNED</div>
     </div>
 
     <!-- 3D IMMUNE LABORATORY -->
@@ -615,7 +615,7 @@ DASHBOARD_HTML = """
 
     <!-- FUTURE ECOSYSTEM -->
     <div class="section">
-        <h2>Future SENTINEL-X Ecosystem <span class="badge badge-future">Disabled</span></h2>
+        <h2>Future ABHIMANYU X Ecosystem <span class="badge badge-future">Disabled</span></h2>
         <div class="future-row">
             <div class="future-card"><h3>ORACLE</h3><p>Threat Prediction</p></div>
             <div class="future-card"><h3>PULSEMESH</h3><p>Runtime Protection</p></div>
@@ -1157,7 +1157,7 @@ def index():
 
 @app.route('/case-file')
 def case_file():
-    """Serve the static SENTINEL-X CORE case-file page (same content as the
+    """Serve the static ABHIMANYU X case-file page (same content as the
     published Artifact) directly from this local server."""
     path = project_root / "sentinel_x_case_file.html"
     if not path.exists():
@@ -1269,7 +1269,7 @@ def health():
 
 
 # ============================================================
-# SENTINEL-X CORE — Judge Mode demo control
+# ABHIMANYU X — Judge Mode demo control
 # ============================================================
 
 @app.route('/api/sentinel/target')

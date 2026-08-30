@@ -147,7 +147,7 @@ curl -X POST http://localhost:8000/api/scan/full \
 curl http://localhost:8000/api/memory/stats
 ```
 
-### SENTINEL-X CORE — Web Laboratory
+### ABHIMANYU X — Web Laboratory
 
 A 3D "cyber immune laboratory" UI for watching one vulnerability travel the
 full lifecycle (REWIND → discovery → ANVIL reasoning → patch → verification

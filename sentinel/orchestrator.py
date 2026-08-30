@@ -1,5 +1,5 @@
 """
-SENTINEL-X CORE - Autonomous Demo Orchestrator
+ABHIMANYU X - Autonomous Demo Orchestrator
 
 Drives one vulnerability through the full lifecycle for the Judge Mode
 ("START AUTONOMOUS DEMO") experience, emitting a WebSocket event per stage.
@@ -114,10 +114,10 @@ class SentinelOrchestrator:
         """Executes the entire lifecycle once against secure_packet_parser."""
         self._reset_flag.clear()
         self.state = "RUNNING"
-        self.emit("demo_state", {"state": self.state, "message": "INITIALIZING SENTINEL-X"})
+        self.emit("demo_state", {"state": self.state, "message": "INITIALIZING ABHIMANYU X"})
 
         try:
-            self._stage("INIT", "SENTINEL-X CORE initializing", 2)
+            self._stage("INIT", "ABHIMANYU X initializing", 2)
             self._stage("INGEST", "Loading vulnerable target: secure_packet_parser", 6,
                          target={"name": "secure_packet_parser", "language": "C",
                                  "build": "CMake", "profile": "Memory Safety"})
@@ -282,7 +282,7 @@ class SentinelOrchestrator:
                     "pattern": "Untrusted length -> fixed-size buffer copy",
                 })
 
-            self._stage("COMPLETE", "SENTINEL-X HAS LEARNED" if all_pass else
+            self._stage("COMPLETE", "ABHIMANYU X HAS LEARNED" if all_pass else
                         "Verification failed — patch rejected", 100)
             self.emit("demo_final", {
                 "verified": all_pass,

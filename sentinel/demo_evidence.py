@@ -1,5 +1,5 @@
 """
-SENTINEL-X CORE - Dynamic Analysis + Fuzz Engine Evidence
+ABHIMANYU X - Dynamic Analysis + Fuzz Engine Evidence
 
 Real AFL++ 4.09c and clang-18+ASan are installed as genuine OS packages in
 the Colima Linux VM (see sentinel/real_fuzzing.py). A real blind-mode AFL++

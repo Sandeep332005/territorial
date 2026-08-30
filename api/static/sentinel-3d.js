@@ -1,5 +1,5 @@
 /**
- * SENTINEL-X CORE — 3D Immune Laboratory
+ * ABHIMANYU X — 3D Immune Laboratory
  *
  * Vanilla Three.js (no build step, no React) driven entirely by real
  * WebSocket events from the SentinelOrchestrator — see the SentinelScene
@@ -433,7 +433,7 @@ export function initSentinelScene(container, { performanceMode = false } = {}) {
                 order.forEach(g => setNodeState(g, 'completed'));
                 clearFlows();
                 setTimeout(() => goTo('final', 2200), 300);
-                showCaption(['SENTINEL-X CORE', 'SECURITY REPAIR VERIFIED'], 3200);
+                showCaption(['ABHIMANYU X', 'SECURITY REPAIR VERIFIED'], 3200);
             }
         },
         onVerifyStep(key, passed) {
