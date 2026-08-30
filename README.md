@@ -4,6 +4,10 @@
 
 **Status: research prototype.** This finds real vulnerabilities, generates real patches via an LLM, and verifies them with genuine (not simulated) checks — but it is not validated for production or defence-classified environments, has no domain-specific hardening for any particular infrastructure, and every patch is meant to be human-reviewed before use, not auto-deployed.
 
+![ABHIMANYU X — one real autonomous mission: idle → REWIND discovery → ANVIL (local LLM) reasoning → real exploit-replay verification → complete](docs/demo.gif)
+
+*Recorded from a real, unmodified run of the live dashboard — real REWIND detection, real local-model (Qwen2.5-Coder 3B via Ollama) reasoning, real compile + exploit-replay verification in the Colima VM. No steps skipped or staged.*
+
 ---
 
 ## 🎯 Overview
