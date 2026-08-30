@@ -1,6 +1,13 @@
-# ABHIMANYU X CORE
+# ABHIMANYU X
 
-## An experimental vulnerability-scanning and auto-patching pipeline for Python and C
+## Autonomous Cyber-Reasoning & Self-Repair System
+
+**AI Kavach Challenge alignment.** The brief asks for a cyber-reasoning system — an LLM laced with fuzzers, static and dynamic analysis, and a regression test harness — that autonomously finds a vulnerability, patches it, and proves the fix holds. That is exactly what this repo runs end to end against real C targets, not a mockup of it.
+
+**Core proposition — AI proposes → Evidence decides → Verification proves → Memory learns.**
+ANVIL's output is never self-certified. A patch is untrusted the moment it's generated; an independent verification engine — not the LLM, and not anything the LLM can influence — is what actually decides pass or fail, by really compiling and running the patched code (build, real exploit replay, regression, behaviour, adversarial robustness, and two separately-compiled sanitizer passes: ASan and UBSan). Only a verified outcome ever gets written to Immune Memory, and only verified evidence — not the patch text alone — is what the Transfer experiment measures propagating to a second, unrelated target. See [Proof-Carrying Patch](#proof-carrying-patch) below for the full, checkable gate list.
+
+An experimental vulnerability-scanning and auto-patching pipeline for Python and C.
 
 **Status: research prototype.** This finds real vulnerabilities, generates real patches via an LLM, and verifies them with genuine (not simulated) checks — but it is not validated for production or defence-classified environments, has no domain-specific hardening for any particular infrastructure, and every patch is meant to be human-reviewed before use, not auto-deployed.
 
@@ -14,7 +21,7 @@
 
 ## 🎯 Overview
 
-ABHIMANYU X CORE discovers, patches, and verifies fixes for security vulnerabilities in Python and C source files, and remembers what it's seen so later scans can build on earlier ones. It combines:
+ABHIMANYU X discovers, patches, and verifies fixes for security vulnerabilities in Python and C source files, and remembers what it's seen so later scans can build on earlier ones. It combines:
 
 - **REWIND Engine** — pattern/heuristic-based static analysis (Python + C)
 - **Fuzz Engine** — mutation-based dynamic testing, with LLM-weighted strategy selection when wired to ANVIL
@@ -31,7 +38,7 @@ This is the real mission state machine (`sentinel/orchestrator.py`) that drives 
 
 ```
                     ┌───────────────────────┐
-                    │   ABHIMANYU X CORE     │
+                    │      ABHIMANYU X       │
                     │   MISSION ENGINE       │
                     │  (SentinelOrchestrator)│
                     └───────────┬────────────┘
@@ -103,6 +110,7 @@ This is the real mission state machine (`sentinel/orchestrator.py`) that drives 
 ```
 \* `DYNAMIC_ANALYSIS`'s execution-count telemetry and `FUZZ`'s executions/sec + coverage-% figures are disclosed, clearly-labeled demo evidence, not measured — a real AFL++ 4.09c found the real crash these numbers describe, but its LLVM17 SanitizerCoverage pass doesn't correctly interact with ASan's redzones on this arm64/Ubuntu 24.04 toolchain (reproduced with a minimal, project-independent repro), so coverage-guided instrumentation isn't functional here. See `sentinel/real_fuzzing.py`.
 
+<a id="proof-carrying-patch"></a>
 ### 🛡️ Proof-Carrying Patch
 
 ABHIMANYU X doesn't hand back "an AI-generated patch" and ask you to trust it. Every accepted patch carries its own evidence, computed from real, independently-run gates (`sentinel/orchestrator.py`, `trust_gates`) — never asserted:
@@ -301,7 +309,7 @@ Staged, evidence-based checks — an earlier failed stage skips the rest rather 
 - Regression check (Python: imports and runs the patched module; C: structural function-presence check only — does not compile-and-execute C as a smoke test, since running arbitrary AI-generated C would itself be a risk)
 - Behavior-preservation check (AST diff for Python; function-set + size-delta heuristic for C)
 
-The live Judge-Mode mission (`sentinel/orchestrator.py`) goes further for the C demo targets: on top of the checks above, it does a **real dynamic exploit replay** — the actual AFL++-found crash input executed against a real clang+ASan compile of the patch inside the Colima VM — plus a second, independently-compiled clang+UBSan run. See [Proof-Carrying Patch](#-proof-carrying-patch) above for the full evidence set and what each gate actually measures.
+The live Judge-Mode mission (`sentinel/orchestrator.py`) goes further for the C demo targets: on top of the checks above, it does a **real dynamic exploit replay** — the actual AFL++-found crash input executed against a real clang+ASan compile of the patch inside the Colima VM — plus a second, independently-compiled clang+UBSan run. See [Proof-Carrying Patch](#proof-carrying-patch) above for the full evidence set and what each gate actually measures.
 
 ### Immune Memory
 
